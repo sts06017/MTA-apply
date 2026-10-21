@@ -1,6 +1,8 @@
 const FORM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxS43nAO9P97duC8VEfgx94g-hGQwpZ_jCxQvxdPWFL7GhS229Xml0N9f-4n6xP7zo/exec';
 const infoPage = document.getElementById('information-page');
 const applicationPage = document.getElementById('application-page');
+const completePage = document.getElementById('complete-page');
+const responseFrame = document.getElementById('response-frame');
 const form = document.getElementById('retreat-form');
 const allSteps = ['youthGroup', 'name', 'cell', 'attendance', 'days', 'transport', 'phone', 'review'];
 const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'attendance', 'transport', 'phone', 'consent'].map(id => [id, document.getElementById(id)]));
@@ -8,6 +10,10 @@ const dayInputs = [...document.querySelectorAll('input[name="days"]')];
 const status = document.getElementById('status');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let currentStep = 'youthGroup';
+let inlineAvailable = false;
+let pendingRequestId = null;
+let responseTimer = null;
+const probeId = crypto.randomUUID();
 
 form.action = FORM_ENDPOINT;
 
@@ -27,6 +33,7 @@ function showView() {
   const applying = location.hash === '#apply';
   infoPage.hidden = applying;
   applicationPage.hidden = !applying;
+  completePage.hidden = true;
   document.title = applying
     ? '신청서 작성 · 2027 More Than Able'
     : '2027 More Than Able · 동계수련회 신청';
@@ -42,11 +49,59 @@ document.getElementById('back-to-info').addEventListener('click', () => {
   history.pushState(null, '', location.pathname + location.search);
   showView();
 });
+document.getElementById('complete-home').addEventListener('click', () => {
+  history.pushState(null, '', location.pathname + location.search);
+  showView();
+});
 window.addEventListener('hashchange', showView);
 window.addEventListener('popstate', showView);
 
-function clearStatus() { status.textContent = ''; }
-function showError(message) { status.textContent = message; }
+function clearStatus() { status.className = 'status'; status.textContent = ''; }
+function showError(message) { status.className = 'status'; status.textContent = message; }
+
+function trustedScriptOrigin(origin) {
+  return origin === 'https://script.google.com' ||
+    origin === 'https://script.googleusercontent.com' ||
+    /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/.test(origin);
+}
+
+function showCompletion() {
+  clearTimeout(responseTimer);
+  pendingRequestId = null;
+  form.reset();
+  document.getElementById('submit-button').disabled = false;
+  document.querySelectorAll('.option.selected').forEach(button => button.classList.remove('selected'));
+  document.querySelectorAll('.option[aria-pressed]').forEach(button => button.setAttribute('aria-pressed', 'false'));
+  document.getElementById('review-summary').replaceChildren();
+  currentStep = 'youthGroup';
+  infoPage.hidden = true;
+  applicationPage.hidden = true;
+  completePage.hidden = false;
+  history.replaceState(null, '', location.pathname + location.search + '#complete');
+  document.title = '신청 완료 · 2027 More Than Able';
+  scrollToTop();
+  document.getElementById('complete-title').focus({ preventScroll: true });
+}
+
+window.addEventListener('message', event => {
+  if (!trustedScriptOrigin(event.origin)) return;
+  const data = event.data;
+  if (!data || data.type !== 'mta-apply-result') return;
+  if (data.kind === 'ready' && data.requestId === probeId) {
+    inlineAvailable = true;
+    return;
+  }
+  if (!pendingRequestId || data.requestId !== pendingRequestId) return;
+  clearTimeout(responseTimer);
+  pendingRequestId = null;
+  if (data.kind === 'success') showCompletion();
+  else {
+    showError('접수를 확인하지 못했습니다. 운영진에게 문의하거나 잠시 후 다시 시도해 주세요.');
+    document.getElementById('submit-button').disabled = false;
+  }
+});
+
+if (FORM_ENDPOINT) responseFrame.src = FORM_ENDPOINT + '?mtaProbe=' + encodeURIComponent(probeId);
 
 function setChoice(name, value) {
   inputs[name].value = value;
@@ -207,6 +262,22 @@ form.addEventListener('submit', event => {
   inputs.name.value = inputs.name.value.trim();
   inputs.cell.value = inputs.cell.value.trim();
   inputs.phone.value = inputs.phone.value.trim();
+  if (inlineAvailable) {
+    const requestId = crypto.randomUUID();
+    pendingRequestId = requestId;
+    document.getElementById('request-id').value = requestId;
+    form.target = responseFrame.name;
+    status.className = 'status pending';
+    status.textContent = '신청 내용을 저장하고 있습니다…';
+    responseTimer = setTimeout(() => {
+      if (pendingRequestId !== requestId) return;
+      pendingRequestId = null;
+      showError('접수 결과를 확인하지 못했습니다. 중복 신청을 피하려면 운영진에게 먼저 확인해 주세요.');
+    }, 30000);
+  } else {
+    form.removeAttribute('target');
+    document.getElementById('request-id').value = '';
+  }
   document.getElementById('submit-button').disabled = true;
 });
 window.addEventListener('pageshow', () => { document.getElementById('submit-button').disabled = false; });
