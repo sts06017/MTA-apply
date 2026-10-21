@@ -3,72 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#16283a">
-  <title>동계수련회 신청 | 데모</title>
-  <meta name="description" content="동계수련회 안내와 신청을 한 페이지에서 진행하는 데모입니다.">
-  <style>
-    :root{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:#172a3a;background:#f4f7f8}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0}button,input,select{font:inherit}a{color:inherit}.wrap{width:min(1100px,calc(100% - 36px));margin:auto}.top{background:#16283a;color:white}.nav{display:flex;align-items:center;justify-content:space-between;min-height:68px}.brand{font-weight:800;letter-spacing:.04em}.pill{display:inline-block;border:1px solid #ffffff6a;border-radius:99px;padding:8px 13px;font-size:13px}.hero{background:#16283a;color:#fff;padding:42px 0 86px}.hero-grid{display:grid;grid-template-columns:1fr .88fr;gap:8%;align-items:center}.eyebrow{color:#b8d6cc;font-weight:800;font-size:13px;letter-spacing:.14em}.hero h1{font-size:clamp(42px,6vw,78px);line-height:1.12;letter-spacing:-.05em;margin:18px 0}.hero p{font-size:17px;line-height:1.8;color:#d9e4e8;max-width:520px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;border-radius:12px;padding:0 22px;text-decoration:none;font-weight:800;border:0;cursor:pointer}.btn.primary{background:#f5cf78;color:#172a3a}.btn.secondary{border:1px solid #8299a5;color:white}.poster{aspect-ratio:4/5;max-width:430px;width:100%;margin:auto;border:9px solid #ffffff18;border-radius:6px;background:radial-gradient(circle at 60% 20%,#d0e8c9 0 7%,transparent 8%),linear-gradient(155deg,#789b9e,#355c6b 54%,#1e394f);box-shadow:0 22px 60px #09192380;display:flex;flex-direction:column;justify-content:space-between;padding:35px;text-align:center;overflow:hidden}.poster small{font-size:12px;letter-spacing:.25em;color:#e9f3e9}.poster strong{font-family:serif;font-size:clamp(42px,6vw,69px);line-height:1.15;font-weight:600;letter-spacing:-.04em}.poster span{font-size:13px;letter-spacing:.08em;line-height:1.8}.demo-tag{display:inline-block;background:#fff2bb;color:#463916;padding:7px 11px;border-radius:99px;font-size:12px;font-weight:800}.section{padding:72px 0}.section h2{font-size:clamp(28px,4vw,42px);letter-spacing:-.04em;margin:0 0 15px}.lead{color:#61717d;line-height:1.7;margin:0 0 30px}.details{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}.detail{background:white;border:1px solid #dfe7e8;border-radius:16px;padding:23px}.detail span{color:#687d86;font-size:13px}.detail strong{display:block;margin-top:10px;font-size:18px}.detail em{display:block;margin-top:7px;color:#8a979b;font-size:12px;font-style:normal}.form-band{background:#e8f0ed;padding:75px 0}.form-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:45px;align-items:start}.form-copy{position:sticky;top:25px}.form-copy p{line-height:1.8;color:#576d72}.card{background:#fff;border-radius:20px;padding:34px;box-shadow:0 15px 50px #173b4315}.card h3{margin:0 0 6px;font-size:25px}.note{font-size:13px;color:#70828b;line-height:1.6}.fields{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}.field.full{grid-column:1/-1}[hidden]{display:none!important}label.title{display:block;font-weight:750;font-size:14px;margin-bottom:8px}label.title b{color:#ac4b43}input:not([type=checkbox]),select{width:100%;height:46px;border:1px solid #cbd8dc;border-radius:9px;padding:0 12px;background:#fff;color:#172a3a}input:focus,select:focus{outline:3px solid #bde1d4;border-color:#237763}.checks{display:flex;align-items:flex-start;gap:9px;border-top:1px solid #e4e9e9;margin-top:27px;padding-top:22px;font-size:14px;line-height:1.65}.checks input{margin-top:5px;accent-color:#277360}.submit{width:100%;background:#246c5d;color:#fff;margin-top:23px}.submit:disabled{opacity:.55;cursor:wait}.status{min-height:25px;margin:12px 0 0;font-size:14px;font-weight:700}.status.ok{color:#17654e}.status.error{color:#aa3d3d}.foot{background:#16283a;color:#bfcdd2;padding:28px 0;font-size:13px}.foot .wrap{display:flex;justify-content:space-between;gap:20px}.setup{border-left:3px solid #f5cf78;padding-left:14px;margin-top:25px;color:#dce8e8;font-size:13px;line-height:1.6}@media(max-width:800px){.hero-grid,.form-grid{grid-template-columns:1fr}.hero{padding:28px 0 65px}.poster{max-width:350px}.details{grid-template-columns:repeat(2,1fr)}.form-copy{position:static}.section,.form-band{padding:55px 0}}@media(max-width:520px){.wrap{width:min(100% - 28px,1100px)}.details,.fields{grid-template-columns:1fr}.hero h1{font-size:48px}.card{padding:24px}.foot .wrap{display:block}}
-  </style>
+  <meta name="theme-color" content="#fffaf0">
+  <meta name="description" content="2027 More Than Able 동계수련회 안내와 신청 페이지">
+  <title>2027 More Than Able · 동계수련회 신청</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-  <header class="top"><div class="wrap nav"><div class="brand">WINTER RETREAT</div><span class="pill">신청 페이지 데모</span></div></header>
-  <main>
-    <section class="hero"><div class="wrap hero-grid"><div><span class="eyebrow">2027 WINTER RETREAT · DEMO</span><h1>함께 모여<br>새롭게 시작해요.</h1><p>수련회 포스터와 행사 안내를 보고, 이 페이지에서 바로 신청할 수 있는 예시입니다. 아래 내용은 모두 데모용입니다.</p><div class="actions"><a class="btn primary" href="#apply">신청서 작성하기 ↓</a><a class="btn secondary" href="#info">행사 안내 보기</a></div><div class="setup">실제 포스터가 준비되면 오른쪽 이미지 영역을 교체할 수 있습니다.</div></div><div class="poster" role="img" aria-label="동계수련회 데모 포스터"><small>TOGETHER · 2027</small><strong>다시,<br>우리의 겨울</strong><span>WINTER RETREAT<br>포스터 이미지 자리</span></div></div></section>
-    <section class="section" id="info"><div class="wrap"><span class="demo-tag">아래 일정과 장소는 예시입니다</span><h2>수련회 안내</h2><p class="lead">신청 전에 필요한 정보를 한눈에 확인하세요. 실제 운영 시 확정된 내용으로 교체합니다.</p><div class="details"><div class="detail"><span>기간</span><strong>2027. 1. 22–24</strong><em>예시 일정</em></div><div class="detail"><span>장소</span><strong>수련회 장소</strong><em>확정 후 기입</em></div><div class="detail"><span>대상</span><strong>교회 공동체</strong><em>대상 부서 기입</em></div><div class="detail"><span>참가비</span><strong>추후 안내</strong><em>납부 방법 기입</em></div></div></div></section>
-    <section class="form-band" id="apply"><div class="wrap form-grid"><div class="form-copy"><span class="eyebrow" style="color:#277360">APPLICATION</span><h2>동계수련회<br>신청하기</h2><p>현재 테스트 운영 중입니다. 실제 개인정보 대신 가짜 정보로 제출을 확인해 주세요.</p><p class="note">제출 후 Google Apps Script의 접수 결과 화면으로 이동합니다.</p></div><div class="card"><h3>참가 신청서</h3><p class="note">* 표시된 항목은 필수입니다.</p><form id="retreat-form"><div class="fields"><div class="field"><label class="title" for="name">이름 <b>*</b></label><input id="name" name="name" required maxlength="40" autocomplete="name"></div><div class="field"><label class="title" for="phone">연락처 <b>*</b></label><input id="phone" name="phone" required inputmode="tel" autocomplete="tel" pattern="[0-9+() -]{9,20}" placeholder="010-1234-5678"></div><div class="field"><label class="title" for="youthGroup">청년 구분 <b>*</b></label><select id="youthGroup" name="youthGroup" required><option value="">선택해 주세요</option><option>하이</option><option>홀리</option></select></div><div class="field"><label class="title" for="cell">소속 셀 <b>*</b></label><input id="cell" name="cell" required maxlength="40" placeholder="소속 셀을 적어 주세요"></div><div class="field"><label class="title" for="attendance">참석 구분 <b>*</b></label><select id="attendance" name="attendance" required><option value="">선택해 주세요</option><option value="전">전 일정</option><option value="부분">부분 참석</option><option value="불참석">불참석</option></select></div><div class="field" id="transport-field"><label class="title" for="transport">이동 수단 <b>*</b></label><select id="transport" name="transport" required><option value="">선택해 주세요</option><option>자차</option><option>버스</option></select></div><fieldset class="field full" id="dates-field" style="border:0;padding:0;margin:0"><legend class="title">참석 날짜 <b>*</b></legend><p class="note" style="margin:0 0 8px">참석하는 날짜를 모두 선택해 주세요.</p><label><input type="checkbox" name="days" value="2027-01-22"> 1월 22일</label>　<label><input type="checkbox" name="days" value="2027-01-23"> 1월 23일</label>　<label><input type="checkbox" name="days" value="2027-01-24"> 1월 24일</label></fieldset><div class="field full"><p class="note">보험 가입용 주민등록번호는 이 신청서에서 받지 않습니다. 보험사의 별도 절차가 확정되면 안내합니다.</p></div></div><label class="checks"><input type="checkbox" name="consent" value="yes" required><span>신청 접수를 위해 입력한 정보를 수집·이용하는 데 동의합니다. <b>*</b><br><small class="note">실제 운영 시 수집 항목, 이용 목적, 보관 기간, 문의처를 명시해야 합니다.</small></span></label><button class="btn submit" type="submit">신청서 제출하기</button><p id="status" class="status" role="status" aria-live="polite"></p></form></div></div></section>
-  </main><footer class="foot"><div class="wrap"><span>동계수련회 신청 페이지 · 데모</span><span>GitHub Pages 배포용 정적 웹페이지</span></div></footer>
-  <script>
-    // Apps Script 배포 URL을 설정하면 실제 저장 모드가 됩니다.
-    const FORM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxS43nAO9P97duC8VEfgx94g-hGQwpZ_jCxQvxdPWFL7GhS229Xml0N9f-4n6xP7zo/exec';
-    const form = document.querySelector('#retreat-form');
-    const status = document.querySelector('#status');
-    const attendance = document.querySelector('#attendance');
-    const datesField = document.querySelector('#dates-field');
-    const transportField = document.querySelector('#transport-field');
-    const transport = document.querySelector('#transport');
-    const dayInputs = [...document.querySelectorAll('input[name="days"]')];
-    function updateAttendance() {
-      const absent = attendance.value === '불참석';
-      datesField.hidden = absent;
-      transportField.hidden = absent;
-      transport.required = !absent;
-      if (attendance.value === '전') dayInputs.forEach(input => input.checked = true);
-      if (absent) { transport.value = ''; dayInputs.forEach(input => input.checked = false); }
-    }
-    attendance.addEventListener('change', updateAttendance);
-    updateAttendance();
-    form.addEventListener('submit', (event) => {
-      if (!form.reportValidity()) { event.preventDefault(); return; }
-      if (attendance.value !== '불참석' && !dayInputs.some(input => input.checked)) {
-        event.preventDefault();
-        status.className = 'status error';
-        status.textContent = '참석 날짜를 하나 이상 선택해 주세요.';
-        datesField.scrollIntoView({behavior:'smooth',block:'center'});
-        return;
-      }
-      if (attendance.value === '전' && !dayInputs.every(input => input.checked)) {
-        event.preventDefault();
-        status.className = 'status error';
-        status.textContent = '전 일정 참석은 모든 날짜를 선택해 주세요.';
-        return;
-      }
-      if (attendance.value === '부분' && dayInputs.every(input => input.checked)) {
-        event.preventDefault();
-        status.className = 'status error';
-        status.textContent = '모든 날짜에 참석한다면 전 일정을 선택해 주세요.';
-        return;
-      }
-      if (!FORM_ENDPOINT) {
-        event.preventDefault();
-        status.className = 'status ok';
-        status.textContent = '데모 제출 완료! 현재는 Google Sheets에 저장되지 않습니다.';
-        form.reset();
-        updateAttendance();
-        return;
-      }
-      form.action = FORM_ENDPOINT;
-      form.method = 'POST';
-    });
-  </script>
+  <div id="information-page">
+    <header class="site-header shell"><a class="brand" href="#top" aria-label="MTA 홈">MTA<small>MORE THAN ABLE</small></a><span class="header-label">2027 WINTER RETREAT</span></header>
+    <main id="top">
+      <section class="poster shell" aria-label="2027 동계수련회 포스터 시안"><div class="poster-star" aria-hidden="true"></div><div class="poster-inner"><div class="poster-top">2027 · MORE THAN ABLE</div><div><h1 class="poster-title"><span>More</span><span>Than</span><span>Able.</span></h1><p class="poster-theme">가능함 그 이상</p></div><div class="poster-foot"><span>2027. 01. 22 — 24</span><span class="poster-hint">실제 포스터 이미지로<br>교체 예정</span></div></div></section>
+      <section class="section verse"><div class="shell"><span class="eyebrow">The Word · Ephesians 3:20–21</span><h2>우리 가운데서<br>역사하시는 능력대로</h2><blockquote>우리 가운데서 역사하시는 능력대로 우리가 구하거나 생각하는 모든 것에 더 넘치도록 능히 하실 이에게 교회 안에서와 그리스도 예수 안에서 영광이 대대로 영원무궁하기를 원하노라 아멘</blockquote><p class="verse-ref">에베소서 3:20~21</p></div></section>
+      <section class="section shell" id="info"><span class="eyebrow">Retreat Information</span><h2>함께하는<br>겨울의 시간</h2><p class="section-intro">2027년 1월 22일부터 24일까지 함께합니다.<br>확정된 일정과 장소는 이 영역에 안내할 예정입니다.</p><div class="info-grid"><article class="info-card"><small>DATE</small><strong>2027년 1월 22일 ~ 24일</strong><p>금요일부터 일요일까지</p></article><article class="info-card"><small>PLACE</small><strong>장소 추후 안내</strong><p>확정 후 주소와 이동 방법을 안내합니다.</p></article><article class="info-card"><small>FOR WHOM</small><strong>하이 · 홀리</strong><p>청년 구분에 맞춰 신청해 주세요.</p></article><article class="info-card"><small>FEE</small><strong>참가비 추후 안내</strong><p>확정 후 금액과 납부 방법을 안내합니다.</p></article></div><div class="schedule" aria-label="일정 안내"><div class="schedule-row"><b>01 / 22</b><span>첫날 일정 · 세부 내용 확정 후 안내</span></div><div class="schedule-row"><b>01 / 23</b><span>둘째 날 일정 · 세부 내용 확정 후 안내</span></div><div class="schedule-row"><b>01 / 24</b><span>마지막 날 일정 · 세부 내용 확정 후 안내</span></div></div><p class="section-note">장소, 참가비, 세부 일정은 아직 확정 전입니다.</p></section>
+    </main>
+    <footer class="page-footer"><div class="shell"><span>2027 More Than Able · 가능함 그 이상</span><span>동계수련회 신청 페이지</span></div></footer>
+    <button class="floating-cta" id="apply-button" type="button">신청하기 <span aria-hidden="true">↗</span></button>
+  </div>
+
+  <div id="application-page" class="application shell" hidden>
+    <header class="app-bar"><button id="back-to-info" class="text-button" type="button">← 안내로 돌아가기</button><span class="step-counter" id="step-counter" aria-live="polite"></span></header>
+    <div class="progress" role="progressbar" aria-label="신청 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="progress-fill"></div></div>
+    <form id="retreat-form" class="wizard" method="POST" novalidate>
+      <section class="step-panel" data-step="youthGroup"><span class="step-kicker">QUESTION 01</span><h1 class="step-title" tabindex="-1">어느 청년부에 속해 있나요?</h1><p class="step-help">참가 안내를 구분하는 데 사용합니다.</p><div class="option-grid" data-options-for="youthGroup"><button class="option" type="button" data-value="하이"><span class="indicator" aria-hidden="true"></span>하이</button><button class="option" type="button" data-value="홀리"><span class="indicator" aria-hidden="true"></span>홀리</button></div><input type="hidden" name="youthGroup" id="youthGroup"></section>
+      <section class="step-panel" data-step="name" hidden><span class="step-kicker">QUESTION 02</span><h1 class="step-title" tabindex="-1">이름을 알려주세요</h1><p class="step-help">신청자를 확인할 때 사용합니다.</p><label for="name" class="visually-hidden">이름</label><input class="entry" id="name" name="name" maxlength="40" autocomplete="name" placeholder="이름 입력" required></section>
+      <section class="step-panel" data-step="cell" hidden><span class="step-kicker">QUESTION 03</span><h1 class="step-title" tabindex="-1">소속 셀은 어디인가요?</h1><p class="step-help">현재 소속된 셀 이름을 적어 주세요.</p><label for="cell" class="visually-hidden">소속 셀</label><input class="entry" id="cell" name="cell" maxlength="40" placeholder="소속 셀 입력" required></section>
+      <section class="step-panel" data-step="attendance" hidden><span class="step-kicker">QUESTION 04</span><h1 class="step-title" tabindex="-1">어떻게 참석하시나요?</h1><p class="step-help">전 일정, 부분 참석, 불참석 중 선택해 주세요.</p><div class="option-grid" data-options-for="attendance"><button class="option" type="button" data-value="전"><span class="indicator" aria-hidden="true"></span>전 일정</button><button class="option" type="button" data-value="부분"><span class="indicator" aria-hidden="true"></span>부분 참석</button><button class="option" type="button" data-value="불참석"><span class="indicator" aria-hidden="true"></span>불참석</button></div><input type="hidden" name="attendance" id="attendance"></section>
+      <section class="step-panel" data-step="days" hidden><span class="step-kicker">QUESTION 05</span><h1 class="step-title" tabindex="-1">참석할 날짜를 골라주세요</h1><p class="step-help">부분 참석하는 날짜를 하나 또는 두 개 선택해 주세요.</p><div class="option-grid dates"><button class="option" type="button" data-day="2027-01-22"><span class="indicator" aria-hidden="true"></span>1월 22일<small>금요일</small></button><button class="option" type="button" data-day="2027-01-23"><span class="indicator" aria-hidden="true"></span>1월 23일<small>토요일</small></button><button class="option" type="button" data-day="2027-01-24"><span class="indicator" aria-hidden="true"></span>1월 24일<small>일요일</small></button></div><div hidden><input type="checkbox" name="days" value="2027-01-22"><input type="checkbox" name="days" value="2027-01-23"><input type="checkbox" name="days" value="2027-01-24"></div></section>
+      <section class="step-panel" data-step="transport" hidden><span class="step-kicker">QUESTION 06</span><h1 class="step-title" tabindex="-1">어떻게 이동하시나요?</h1><p class="step-help">이동 수단을 선택해 주세요.</p><div class="option-grid" data-options-for="transport"><button class="option" type="button" data-value="자차"><span class="indicator" aria-hidden="true"></span>자차</button><button class="option" type="button" data-value="버스"><span class="indicator" aria-hidden="true"></span>버스</button></div><input type="hidden" name="transport" id="transport"></section>
+      <section class="step-panel" data-step="phone" hidden><span class="step-kicker">QUESTION 07</span><h1 class="step-title" tabindex="-1">연락 가능한 번호를 알려주세요</h1><p class="step-help">수련회 안내를 받을 연락처입니다.</p><label for="phone" class="visually-hidden">연락처</label><input class="entry" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" pattern="[0-9+() -]{9,20}" placeholder="010-1234-5678" required></section>
+      <section class="step-panel" data-step="review" hidden><span class="step-kicker">FINAL STEP</span><h1 class="step-title" tabindex="-1">신청 내용을 확인해 주세요</h1><p class="step-help">제출하기 전에 입력한 내용을 살펴봐 주세요.</p><div class="review" id="review-summary"></div><div class="insurance-note">보험 가입용 주민등록번호는 이 신청서에서 받지 않습니다. 별도 절차가 확정되면 안내합니다.</div><label class="consent"><input type="checkbox" name="consent" value="yes" id="consent" required><span>신청 접수를 위해 입력한 정보를 수집·이용하는 데 동의합니다.<small>실제 운영 전 수집 항목, 이용 목적, 보관 기간, 문의처를 확정해 고지해야 합니다.</small></span></label></section>
+      <div class="wizard-actions"><button class="text-button" type="button" id="previous-step">← 이전</button><button class="next-button" type="button" id="next-step">다음 →</button><button class="next-button" type="submit" id="submit-button" hidden>신청서 제출하기 ↗</button></div><p class="status" id="status" role="alert" aria-live="polite"></p><p class="demo-notice"><strong>현재 테스트 운영 중입니다.</strong> 실제 개인정보 대신 가짜 정보로 제출을 확인해 주세요. 제출 시 Google Apps Script의 접수 결과 화면으로 이동합니다.</p>
+    </form>
+  </div>
 </body>
 </html>
