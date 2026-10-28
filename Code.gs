@@ -23,14 +23,18 @@ function doPost(e) {
     const youthGroup = clean(p.youthGroup, 10);
     const attendance = clean(p.attendance, 10);
     const transport = clean(p.transport, 10);
+    const rrnCiphertext = clean(p.rrnCiphertext, 512);
 
     if (!name || !cell || !/^[0-9+() -]{9,20}$/.test(phone)) throw new Error('invalid');
     if (!['하이', '홀리'].includes(youthGroup)) throw new Error('invalid');
     if (!['전', '부분', '불참석'].includes(attendance)) throw new Error('invalid');
     if (p.consent !== 'yes') throw new Error('invalid');
+    if (p.residentNumber || p.rrn) throw new Error('plaintext-rrn');
     if (attendance === '불참석') {
-      if (days.length || transport) throw new Error('invalid');
+      if (days.length || transport || rrnCiphertext) throw new Error('invalid');
     } else {
+      // RSA-OAEP 3072비트 암호문 384바이트를 Base64로 인코딩한 길이입니다.
+      if (!/^[A-Za-z0-9+/]{512}$/.test(rrnCiphertext)) throw new Error('invalid-insurance-data');
       if (!['자차', '버스'].includes(transport)) throw new Error('invalid');
       if (!days.length || days.some(day => !ALLOWED_DAYS.includes(day))) throw new Error('invalid');
       if (new Set(days).size !== days.length) throw new Error('invalid');
@@ -47,7 +51,7 @@ function doPost(e) {
       sheet.appendRow([
         new Date(), safeText(youthGroup), safeText(name), safeText(cell),
         safeText(attendance), safeText(days.join(', ')), safeText(transport),
-        safeText(phone)
+        safeText(phone), rrnCiphertext
       ]);
     } finally {
       lock.releaseLock();
@@ -80,7 +84,7 @@ function resultPage(kind, requestId) {
   const ready = kind === 'ready';
   const title = ready ? '연결을 확인했습니다.' : success ? '신청이 접수되었습니다.' : '접수를 확인하지 못했습니다.';
   const message = ready ? '신청 페이지에서 계속 진행해 주세요.' : success ? '신청해 주셔서 감사합니다.' : '운영진에게 문의하거나 잠시 후 다시 시도해 주세요.';
-  const payload = JSON.stringify({type: 'mta-apply-result', kind: kind, requestId: requestId});
+  const payload = JSON.stringify({type: 'mta-apply-result', kind: kind, requestId: requestId, rrnEncrypted: true});
   const script = requestId ? '<script>window.top.postMessage(' + payload + ',' + JSON.stringify(SITE_ORIGIN) + ');</script>' : '';
   const output = HtmlService.createHtmlOutput(
     '<!doctype html><html lang="ko"><meta charset="utf-8">' +

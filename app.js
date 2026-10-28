@@ -1,11 +1,15 @@
 const FORM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxS43nAO9P97duC8VEfgx94g-hGQwpZ_jCxQvxdPWFL7GhS229Xml0N9f-4n6xP7zo/exec';
+// 공개키만 이 파일에 둡니다. 개인키는 Git 저장소 밖에 보관합니다.
+const INSURANCE_PUBLIC_KEY = 'MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAuWOUOyFq2bGpIcnWT07Mng8Pm6ROArKKWOCdZCfcOlDReiPWBMgQk9b7qTq+fEMflmU2Rw+Ql+ewXVU6cfxT2HKWiSJxzlJXCq/KOauBtrJo8Yu2JgHxWNy7RtRynz9hLf0HzZ7tOVJAC2Bsd0PvRHGzlPaBYBS+sU1UdqqTdRfNEfV76KdvWSJNKFIr9xwuDwoTLSow20eW04xfkLwUWSsSSjv5InemHopCGpEo35roDBTVNxFOjbDcV9KEkDMvxmv3ULqaS7o6Jk5FsXDg49ozywtoZ7S+SDp7NZcptEZ6VHMe2MiLGQREK4FtpCdDqurinAd6XOB7bjHxWJ4cGdRuqzsG3OmNXkMLOnhQnrQMfAgNWeyD9qteeCunh+tjlQIRP4MUt11263PeqWZ0U6CQJ7sCw0S4k2Q9v+yVjlEoU8CKTzqPiyiT6Dc+HeDmxyZ/zjw+uEFz58Gozl/gynEosgBGBD0xCRg5hSodKVCc/aqMuYWGz4oMrRYibUf7AgMBAAE=';
 const infoPage = document.getElementById('information-page');
 const applicationPage = document.getElementById('application-page');
 const completePage = document.getElementById('complete-page');
 const responseFrame = document.getElementById('response-frame');
 const form = document.getElementById('retreat-form');
-const allSteps = ['youthGroup', 'name', 'cell', 'attendance', 'days', 'transport', 'phone', 'review'];
+const allSteps = ['youthGroup', 'name', 'cell', 'attendance', 'days', 'transport', 'phone', 'residentNumber', 'review'];
 const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'attendance', 'transport', 'phone', 'consent'].map(id => [id, document.getElementById(id)]));
+const residentNumber = document.getElementById('resident-number');
+const rrnCiphertext = document.getElementById('rrn-ciphertext');
 const dayInputs = [...document.querySelectorAll('input[name="days"]')];
 const status = document.getElementById('status');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -21,7 +25,7 @@ function activeSteps() {
   const attendance = inputs.attendance.value;
   return allSteps.filter(key =>
     (key !== 'days' || attendance === '부분') &&
-    (key !== 'transport' || attendance !== '불참석')
+    (!['transport', 'residentNumber'].includes(key) || attendance !== '불참석')
   );
 }
 
@@ -31,6 +35,10 @@ function scrollToTop() {
 
 function showView() {
   const applying = location.hash === '#apply';
+  if (!applying) {
+    residentNumber.value = '';
+    rrnCiphertext.value = '';
+  }
   infoPage.hidden = applying;
   applicationPage.hidden = !applying;
   completePage.hidden = true;
@@ -88,7 +96,7 @@ window.addEventListener('message', event => {
   const data = event.data;
   if (!data || data.type !== 'mta-apply-result') return;
   if (data.kind === 'ready' && data.requestId === probeId) {
-    inlineAvailable = true;
+    inlineAvailable = data.rrnEncrypted === true;
     return;
   }
   if (!pendingRequestId || data.requestId !== pendingRequestId) return;
@@ -134,6 +142,8 @@ function updateAttendance() {
   if (value === '전') {
     dayInputs.forEach(input => { input.checked = true; });
   } else if (value === '불참석') {
+    residentNumber.value = '';
+    rrnCiphertext.value = '';
     dayInputs.forEach(input => { input.checked = false; });
     inputs.transport.value = '';
     document.querySelectorAll('[data-options-for="transport"] .option').forEach(button => {
@@ -169,6 +179,7 @@ function renderSummary() {
     rows.push(['이동 수단', inputs.transport.value]);
   }
   rows.push(['연락처', inputs.phone.value.trim()]);
+  if (inputs.attendance.value !== '불참석') rows.push(['보험 가입 정보', '입력 완료 · 확인 화면에 표시하지 않음']);
   const target = document.getElementById('review-summary');
   target.replaceChildren(...rows.map(([label, value]) => {
     const row = document.createElement('div');
@@ -219,6 +230,7 @@ function validateStep(key) {
   }
   if (key === 'transport' && !['자차', '버스'].includes(inputs.transport.value)) return '이동 수단을 선택해 주세요.';
   if (key === 'phone' && !/^[0-9+() -]{9,20}$/.test(inputs.phone.value.trim())) return '연락처를 확인해 주세요.';
+  if (key === 'residentNumber' && !/^\d{6}-?\d{7}$/.test(residentNumber.value.trim())) return '주민등록번호 13자리를 확인해 주세요.';
   if (key === 'review' && !inputs.consent.checked) return '개인정보 수집·이용 동의가 필요합니다.';
   return '';
 }
@@ -237,31 +249,48 @@ document.getElementById('previous-step').addEventListener('click', () => {
   renderStep();
   applicationPage.scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' });
 });
-[inputs.name, inputs.cell, inputs.phone].forEach(input => {
+[inputs.name, inputs.cell, inputs.phone, residentNumber].forEach(input => {
   input.addEventListener('keydown', event => {
     if (event.key === 'Enter') { event.preventDefault(); document.getElementById('next-step').click(); }
   });
 });
 
-form.addEventListener('submit', event => {
+async function encryptResidentNumber(value) {
+  const binary = atob(INSURANCE_PUBLIC_KEY);
+  const keyBytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+  const key = await crypto.subtle.importKey('spki', keyBytes, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt']);
+  const encrypted = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, key, new TextEncoder().encode(value.replace(/\D/g, '')));
+  return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+}
+
+form.addEventListener('submit', async event => {
+  event.preventDefault();
   for (const key of activeSteps()) {
     const error = validateStep(key);
     if (error) {
-      event.preventDefault();
       currentStep = key;
       renderStep();
       showError(error);
       return;
     }
   }
-  if (!FORM_ENDPOINT) {
-    event.preventDefault();
-    showError('접수 주소가 설정되지 않았습니다. 운영진에게 문의해 주세요.');
+  if (!FORM_ENDPOINT || !inlineAvailable) {
+    showError('보험 정보 접수 서버가 아직 준비되지 않았습니다. 운영진에게 문의해 주세요.');
     return;
   }
   inputs.name.value = inputs.name.value.trim();
   inputs.cell.value = inputs.cell.value.trim();
   inputs.phone.value = inputs.phone.value.trim();
+  const submitButton = document.getElementById('submit-button');
+  submitButton.disabled = true;
+  try {
+    rrnCiphertext.value = inputs.attendance.value === '불참석' ? '' : await encryptResidentNumber(residentNumber.value.trim());
+  } catch (error) {
+    rrnCiphertext.value = '';
+    submitButton.disabled = false;
+    showError('보험 정보를 암호화하지 못했습니다. 보안 연결에서 다시 시도해 주세요.');
+    return;
+  }
   if (inlineAvailable) {
     const requestId = crypto.randomUUID();
     pendingRequestId = requestId;
@@ -272,13 +301,11 @@ form.addEventListener('submit', event => {
     responseTimer = setTimeout(() => {
       if (pendingRequestId !== requestId) return;
       pendingRequestId = null;
+      document.getElementById('submit-button').disabled = false;
       showError('접수 결과를 확인하지 못했습니다. 중복 신청을 피하려면 운영진에게 먼저 확인해 주세요.');
     }, 30000);
-  } else {
-    form.removeAttribute('target');
-    document.getElementById('request-id').value = '';
   }
-  document.getElementById('submit-button').disabled = true;
+  form.submit();
 });
 window.addEventListener('pageshow', () => { document.getElementById('submit-button').disabled = false; });
 
