@@ -4,9 +4,15 @@ const applicationPage = document.getElementById('application-page');
 const completePage = document.getElementById('complete-page');
 const responseFrame = document.getElementById('response-frame');
 const form = document.getElementById('retreat-form');
-const allSteps = ['youthGroup', 'name', 'cell', 'attendance', 'days', 'transport', 'phone', 'review'];
+const allSteps = ['youthGroup', 'cell', 'name', 'attendance', 'days', 'transport', 'phone', 'review'];
 const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'attendance', 'transport', 'phone', 'consent'].map(id => [id, document.getElementById(id)]));
 const dayInputs = [...document.querySelectorAll('input[name="days"]')];
+const CELLS = {
+  '에임홀리': ['관용셀', '희영셀', '서우셀', '설희셀', '하은셀', '병민셀', '프렌즈팀'],
+  '에임하이': ['서영셀', '효성셀', '지민셀', '수빈셀', '프렌즈팀']
+};
+const customGroupInput = document.getElementById('custom-group');
+let customGroup = false;
 const status = document.getElementById('status');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let currentStep = 'youthGroup';
@@ -20,6 +26,7 @@ form.action = FORM_ENDPOINT;
 function activeSteps() {
   const attendance = inputs.attendance.value;
   return allSteps.filter(key =>
+    (key !== 'cell' || !customGroup) &&
     (key !== 'days' || attendance === '부분') &&
     (key !== 'transport' || attendance !== '불참석')
   );
@@ -69,6 +76,10 @@ function showCompletion() {
   clearTimeout(responseTimer);
   pendingRequestId = null;
   form.reset();
+  customGroup = false;
+  customGroupInput.value = '';
+  document.getElementById('custom-group-wrap').hidden = true;
+  renderCellOptions();
   document.getElementById('submit-button').disabled = false;
   document.querySelectorAll('.option.selected').forEach(button => button.classList.remove('selected'));
   document.querySelectorAll('.option[aria-pressed]').forEach(button => button.setAttribute('aria-pressed', 'false'));
@@ -103,7 +114,39 @@ window.addEventListener('message', event => {
 
 if (FORM_ENDPOINT) responseFrame.src = FORM_ENDPOINT + '?mtaProbe=' + encodeURIComponent(probeId);
 
+function renderCellOptions() {
+  const container = document.getElementById('cell-options');
+  container.replaceChildren(...(CELLS[inputs.youthGroup.value] || []).map(cell => {
+    const button = document.createElement('button');
+    button.className = 'option';
+    button.type = 'button';
+    button.dataset.value = cell;
+    button.setAttribute('aria-pressed', 'false');
+    const indicator = document.createElement('span');
+    indicator.className = 'indicator';
+    indicator.setAttribute('aria-hidden', 'true');
+    button.append(indicator, cell);
+    button.addEventListener('click', () => setChoice('cell', cell));
+    return button;
+  }));
+}
+
 function setChoice(name, value) {
+  if (name === 'youthGroup') {
+    customGroup = value === '__custom__';
+    document.getElementById('custom-group-wrap').hidden = !customGroup;
+    inputs.cell.value = '';
+    inputs.youthGroup.value = customGroup ? customGroupInput.value.trim() : value;
+    document.querySelectorAll('[data-options-for="youthGroup"] .option').forEach(button => {
+      const selected = button.dataset.value === value;
+      button.classList.toggle('selected', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    });
+    renderCellOptions();
+    clearStatus();
+    if (customGroup) customGroupInput.focus();
+    return;
+  }
   inputs[name].value = value;
   document.querySelectorAll('[data-options-for="' + name + '"] .option').forEach(button => {
     const selected = button.dataset.value === value;
@@ -114,6 +157,7 @@ function setChoice(name, value) {
   if (name === 'attendance') updateAttendance();
 }
 
+customGroupInput.addEventListener('input', () => { inputs.youthGroup.value = customGroupInput.value.trim(); clearStatus(); });
 document.querySelectorAll('[data-options-for] .option').forEach(button => {
   button.setAttribute('aria-pressed', 'false');
   button.addEventListener('click', () => {
@@ -159,9 +203,9 @@ document.querySelectorAll('[data-day]').forEach(button => {
 function renderSummary() {
   const attendanceLabels = { '전': '전 일정', '부분': '부분 참석', '불참석': '불참석' };
   const rows = [
-    ['청년 구분', inputs.youthGroup.value],
+    ['소속', inputs.youthGroup.value],
+    ...(customGroup ? [] : [['소속 셀', inputs.cell.value]]),
     ['이름', inputs.name.value.trim()],
-    ['소속 셀', inputs.cell.value.trim()],
     ['참석 구분', attendanceLabels[inputs.attendance.value] || '']
   ];
   if (inputs.attendance.value !== '불참석') {
@@ -209,9 +253,12 @@ function renderStep() {
 }
 
 function validateStep(key) {
-  if (key === 'youthGroup' && !['하이', '홀리'].includes(inputs.youthGroup.value)) return '청년 구분을 선택해 주세요.';
+  if (key === 'youthGroup') {
+    if (customGroup) { if (!inputs.youthGroup.value) return '소속을 입력해 주세요.'; }
+    else if (!CELLS[inputs.youthGroup.value]) return '소속을 선택해 주세요.';
+  }
+  if (key === 'cell' && !(CELLS[inputs.youthGroup.value] || []).includes(inputs.cell.value)) return '소속 셀을 선택해 주세요.';
   if (key === 'name' && !inputs.name.value.trim()) return '이름을 입력해 주세요.';
-  if (key === 'cell' && !inputs.cell.value.trim()) return '소속 셀을 입력해 주세요.';
   if (key === 'attendance' && !['전', '부분', '불참석'].includes(inputs.attendance.value)) return '참석 구분을 선택해 주세요.';
   if (key === 'days') {
     const count = dayInputs.filter(input => input.checked).length;
@@ -237,7 +284,7 @@ document.getElementById('previous-step').addEventListener('click', () => {
   renderStep();
   applicationPage.scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' });
 });
-[inputs.name, inputs.cell, inputs.phone].forEach(input => {
+[inputs.name, inputs.phone, customGroupInput].forEach(input => {
   input.addEventListener('keydown', event => {
     if (event.key === 'Enter') { event.preventDefault(); document.getElementById('next-step').click(); }
   });
@@ -260,7 +307,6 @@ form.addEventListener('submit', event => {
     return;
   }
   inputs.name.value = inputs.name.value.trim();
-  inputs.cell.value = inputs.cell.value.trim();
   inputs.phone.value = inputs.phone.value.trim();
   if (inlineAvailable) {
     const requestId = crypto.randomUUID();
