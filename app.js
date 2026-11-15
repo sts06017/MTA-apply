@@ -79,6 +79,7 @@ function showCompletion() {
   clearTimeout(responseTimer);
   pendingRequestId = null;
   form.reset();
+  clearArrival();
   customGroup = false;
   customGroupInput.value = '';
   document.getElementById('custom-group-wrap').hidden = true;
@@ -134,6 +135,51 @@ function renderCellOptions() {
   }));
 }
 
+const arrivalState = { hour: null, minute: null };
+const pad2 = number => String(number).padStart(2, '0');
+
+function syncArrival() {
+  const { hour, minute } = arrivalState;
+  document.querySelectorAll('#arrival-hours .chip').forEach(chip => {
+    const selected = Number(chip.dataset.value) === hour;
+    chip.classList.toggle('selected', selected);
+    chip.setAttribute('aria-pressed', String(selected));
+  });
+  document.querySelectorAll('#arrival-minutes .chip').forEach(chip => {
+    const selected = Number(chip.dataset.value) === minute;
+    chip.classList.toggle('selected', selected);
+    chip.setAttribute('aria-pressed', String(selected));
+  });
+  inputs.arrival.value = hour !== null && minute !== null ? pad2(hour) + ':' + pad2(minute) : '';
+  const result = document.getElementById('arrival-result');
+  if (hour === null && minute === null) result.textContent = '';
+  else {
+    const period = hour === null ? '' : (hour < 12 ? '오전 ' : '오후 ');
+    const shown = hour === null ? '--시' : (hour % 12 === 0 ? 12 : hour % 12) + '시';
+    result.textContent = period + shown + ' ' + (minute === null ? '--분' : minute + '분');
+  }
+}
+
+function clearArrival() {
+  arrivalState.hour = null;
+  arrivalState.minute = null;
+  syncArrival();
+}
+
+function buildChips(containerId, values, label, key) {
+  document.getElementById(containerId).replaceChildren(...values.map(value => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.dataset.value = String(value);
+    chip.textContent = pad2(value) + label;
+    chip.addEventListener('click', () => { arrivalState[key] = value; syncArrival(); clearStatus(); });
+    return chip;
+  }));
+}
+buildChips('arrival-hours', Array.from({ length: 18 }, (_, index) => index + 6), '시', 'hour');
+buildChips('arrival-minutes', [0, 10, 20, 30, 40, 50], '분', 'minute');
+
 function setChoice(name, value) {
   if (name === 'youthGroup') {
     customGroup = value === '__custom__';
@@ -158,7 +204,7 @@ function setChoice(name, value) {
   });
   clearStatus();
   if (name === 'attendance') updateAttendance();
-  if (name === 'transport' && value !== '자차') inputs.arrival.value = '';
+  if (name === 'transport' && value !== '자차') clearArrival();
 }
 
 inputs.phone.addEventListener('input', () => {
@@ -308,7 +354,7 @@ document.getElementById('previous-step').addEventListener('click', () => {
   renderStep();
   applicationPage.scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' });
 });
-[inputs.name, inputs.phone, inputs.rrn, inputs.arrival, customGroupInput].forEach(input => {
+[inputs.name, inputs.phone, inputs.rrn, customGroupInput].forEach(input => {
   input.addEventListener('keydown', event => {
     if (event.key === 'Enter') { event.preventDefault(); document.getElementById('next-step').click(); }
   });
