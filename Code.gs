@@ -26,6 +26,8 @@ function doPost(e) {
     const rrn = clean(p.rrn, 14);
     const arrival = clean(p.arrival, 5);
     const sleep = clean(p.sleep, 10);
+    const prayer = clean(p.prayer, 500);
+    const request = clean(p.request, 500);
 
     if (!name || !youthGroup || !/^[0-9+() -]{9,20}$/.test(phone)) throw new Error('invalid');
     if (!/^\d{6}-\d{7}$/.test(rrn)) throw new Error('invalid');
@@ -50,7 +52,7 @@ function doPost(e) {
         new Date(), youthGroup, cell, name,
         phone, rrn, attendance,
         days.join(', '), arrival, transport,
-        sleep
+        sleep, prayer, request
       ];
       const target = sheet.getRange(sheet.getLastRow() + 1, 1, 1, row.length);
       // 접수시간을 제외한 모든 칸을 텍스트로 저장합니다. 전화번호 앞자리 0이 사라지지 않고, 수식 문자(=, + 등)로 시작해도 실행되지 않습니다.
