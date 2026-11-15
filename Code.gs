@@ -49,11 +49,17 @@ function doPost(e) {
     const lock = LockService.getScriptLock();
     lock.waitLock(10000);
     try {
-      sheet.appendRow([
-        new Date(), safeText(youthGroup), safeText(name), safeText(cell),
-        safeText(attendance), safeText(days.join(', ')), safeText(transport),
-        safeText(phone), "'" + rrn, safeText(arrival), safeText(sleep)
-      ]);
+      const row = [
+        new Date(), youthGroup, cell, name,
+        phone, rrn, attendance,
+        days.join(', '), arrival, transport,
+        sleep
+      ];
+      const target = sheet.getRange(sheet.getLastRow() + 1, 1, 1, row.length);
+      // 접수시간을 제외한 모든 칸을 텍스트로 저장합니다. 전화번호 앞자리 0이 사라지지 않고, 수식 문자(=, + 등)로 시작해도 실행되지 않습니다.
+      target.setNumberFormat('@');
+      sheet.getRange(target.getRow(), 1).setNumberFormat('yyyy-mm-dd hh:mm:ss');
+      target.setValues([row]);
     } finally {
       lock.releaseLock();
     }
