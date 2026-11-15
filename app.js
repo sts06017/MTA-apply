@@ -28,9 +28,7 @@ function activeSteps() {
   return allSteps.filter(key =>
     (key !== 'cell' || !customGroup) &&
     (key !== 'days' || attendance === '부분') &&
-    (key !== 'transport' || attendance !== '불참석') &&
-    (key !== 'arrival' || (attendance !== '불참석' && inputs.transport.value === '자차')) &&
-    (key !== 'sleep' || attendance !== '불참석')
+    (key !== 'arrival' || inputs.transport.value === '자차')
   );
 }
 
@@ -192,16 +190,6 @@ function updateAttendance() {
   const value = inputs.attendance.value;
   if (value === '전') {
     dayInputs.forEach(input => { input.checked = true; });
-  } else if (value === '불참석') {
-    dayInputs.forEach(input => { input.checked = false; });
-    ['transport', 'sleep'].forEach(name => {
-      inputs[name].value = '';
-      document.querySelectorAll('[data-options-for="' + name + '"] .option').forEach(button => {
-        button.classList.remove('selected');
-        button.setAttribute('aria-pressed', 'false');
-      });
-    });
-    inputs.arrival.value = '';
   } else if (value === '부분' && dayInputs.filter(input => input.checked).length !== 1) {
     dayInputs.forEach(input => { input.checked = false; });
   }
@@ -221,7 +209,7 @@ document.querySelectorAll('[data-day]').forEach(button => {
 });
 
 function renderSummary() {
-  const attendanceLabels = { '전': '전 일정', '부분': '부분 참석', '불참석': '불참석' };
+  const attendanceLabels = { '전': '전 일정', '부분': '부분 참석' };
   const rows = [
     ['소속', inputs.youthGroup.value],
     ...(customGroup ? [] : [['소속 셀', inputs.cell.value]]),
@@ -230,12 +218,10 @@ function renderSummary() {
     ['주민등록번호', inputs.rrn.value.replace(/^(\d{6}-\d)\d{6}$/, '$1******')],
     ['참석 구분', attendanceLabels[inputs.attendance.value] || '']
   ];
-  if (inputs.attendance.value !== '불참석') {
-    rows.push(['참석 날짜', dayInputs.filter(input => input.checked).map(input => Number(input.value.slice(-2)) + '일').join(', ')]);
-    rows.push(['이동 수단', inputs.transport.value]);
-    if (inputs.transport.value === '자차') rows.push(['도착 예정', inputs.arrival.value]);
-    rows.push(['취침 여부', inputs.sleep.value]);
-  }
+  rows.push(['참석 날짜', dayInputs.filter(input => input.checked).map(input => Number(input.value.slice(-2)) + '일').join(', ')]);
+  rows.push(['이동 수단', inputs.transport.value]);
+  if (inputs.transport.value === '자차') rows.push(['도착 예정', inputs.arrival.value]);
+  rows.push(['취침 여부', inputs.sleep.value]);
   const target = document.getElementById('review-summary');
   target.replaceChildren(...rows.map(([label, value]) => {
     const row = document.createElement('div');
@@ -282,7 +268,7 @@ function validateStep(key) {
   }
   if (key === 'cell' && !(CELLS[inputs.youthGroup.value] || []).includes(inputs.cell.value)) return '소속 셀을 선택해 주세요.';
   if (key === 'name' && !inputs.name.value.trim()) return '이름을 입력해 주세요.';
-  if (key === 'attendance' && !['전', '부분', '불참석'].includes(inputs.attendance.value)) return '참석 구분을 선택해 주세요.';
+  if (key === 'attendance' && !['전', '부분'].includes(inputs.attendance.value)) return '참석 구분을 선택해 주세요.';
   if (key === 'days') {
     const count = dayInputs.filter(input => input.checked).length;
     if (count !== 1) return '부분 참석 날짜를 하나 선택해 주세요.';

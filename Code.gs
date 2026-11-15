@@ -29,19 +29,15 @@ function doPost(e) {
 
     if (!name || !youthGroup || !/^[0-9+() -]{9,20}$/.test(phone)) throw new Error('invalid');
     if (!/^\d{6}-\d{7}$/.test(rrn)) throw new Error('invalid');
-    if (!['전', '부분', '불참석'].includes(attendance)) throw new Error('invalid');
+    if (!['전', '부분'].includes(attendance)) throw new Error('invalid');
     if (p.consent !== 'yes') throw new Error('invalid');
-    if (attendance === '불참석') {
-      if (days.length || transport || arrival || sleep) throw new Error('invalid');
-    } else {
-      if (!['자차', '버스'].includes(transport)) throw new Error('invalid');
-      if (transport === '자차' ? !/^\d{2}:\d{2}$/.test(arrival) : arrival) throw new Error('invalid');
-      if (!['취침', '취침 안 함'].includes(sleep)) throw new Error('invalid');
-      if (!days.length || days.some(day => !ALLOWED_DAYS.includes(day))) throw new Error('invalid');
-      if (new Set(days).size !== days.length) throw new Error('invalid');
-      if (attendance === '전' && days.length !== ALLOWED_DAYS.length) throw new Error('invalid');
-      if (attendance === '부분' && days.length !== 1) throw new Error('invalid');
-    }
+    if (!['자차', '버스'].includes(transport)) throw new Error('invalid');
+    if (transport === '자차' ? !/^\d{2}:\d{2}$/.test(arrival) : arrival) throw new Error('invalid');
+    if (!['취침', '취침 안 함'].includes(sleep)) throw new Error('invalid');
+    if (!days.length || days.some(day => !ALLOWED_DAYS.includes(day))) throw new Error('invalid');
+    if (new Set(days).size !== days.length) throw new Error('invalid');
+    if (attendance === '전' && days.length !== ALLOWED_DAYS.length) throw new Error('invalid');
+    if (attendance === '부분' && days.length !== 1) throw new Error('invalid');
 
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = spreadsheet && spreadsheet.getSheetByName(SHEET_NAME);
