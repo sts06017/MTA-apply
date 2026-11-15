@@ -16,7 +16,6 @@ const CELLS = {
 };
 const customGroupInput = document.getElementById('custom-group');
 let customGroup = false;
-let advanceTimer = null;
 let returnToReview = false;
 let allowUnload = false;
 const status = document.getElementById('status');
@@ -234,7 +233,6 @@ function buildChips(containerId, values, label, key) {
       arrivalState[key] = value;
       syncArrival();
       clearStatus();
-      if (arrivalState.hour !== null && arrivalState.minute !== null) scheduleAdvance();
     });
     return chip;
   }));
@@ -256,7 +254,6 @@ function setChoice(name, value) {
     renderCellOptions();
     clearStatus();
     if (customGroup) customGroupInput.focus();
-    else scheduleAdvance();
     return;
   }
   inputs[name].value = value;
@@ -268,7 +265,6 @@ function setChoice(name, value) {
   clearStatus();
   if (name === 'attendance') updateAttendance();
   if (name === 'transport' && value !== '자차') clearArrival();
-  scheduleAdvance();
 }
 
 inputs.phone.addEventListener('input', () => {
@@ -338,7 +334,6 @@ document.querySelectorAll('[data-day]').forEach(button => {
     syncDayButtons();
     syncTransport();
     clearStatus();
-    if (dayInputs.filter(item => item.checked).length === 1) scheduleAdvance();
   });
 });
 
@@ -442,7 +437,6 @@ function validateStep(key) {
 }
 
 function goTo(step) {
-  clearTimeout(advanceTimer);
   currentStep = step;
   if (step === 'review') returnToReview = false;
   history.pushState({ step }, '', '#apply');
@@ -460,15 +454,6 @@ function goNext() {
     return;
   }
   goTo(sequence[sequence.indexOf(currentStep) + 1]);
-}
-
-// 선택형 질문은 고른 뒤 잠깐 보여주고 자동으로 다음 단계로 넘어갑니다.
-function scheduleAdvance() {
-  clearTimeout(advanceTimer);
-  const step = currentStep;
-  advanceTimer = setTimeout(() => {
-    if (currentStep === step && !validateStep(step)) goNext();
-  }, reduceMotion.matches ? 120 : 380);
 }
 
 document.getElementById('next-step').addEventListener('click', goNext);
