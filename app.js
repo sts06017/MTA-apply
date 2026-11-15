@@ -4,11 +4,11 @@ const applicationPage = document.getElementById('application-page');
 const completePage = document.getElementById('complete-page');
 const responseFrame = document.getElementById('response-frame');
 const form = document.getElementById('retreat-form');
-const allSteps = ['youthGroup', 'cell', 'name', 'phone', 'rrn', 'attendance', 'days', 'transport', 'arrival', 'sleep', 'review'];
+const allSteps = ['youthGroup', 'cell', 'name', 'phone', 'rrn', 'attendance', 'days', 'transport', 'arrival', 'sleep', 'prayer', 'request', 'review'];
 // 조건에 따라 나타나는 질문은 앞 질문의 하위 번호(예: 05-1)로 표시해 전체 개수가 변하지 않게 합니다.
 const SUB_OF = { cell: 'youthGroup', days: 'attendance', arrival: 'transport' };
 const mainSteps = allSteps.filter(key => !SUB_OF[key]);
-const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'phone', 'rrn', 'attendance', 'transport', 'arrival', 'sleep', 'consent'].map(id => [id, document.getElementById(id)]));
+const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'phone', 'rrn', 'attendance', 'transport', 'arrival', 'sleep', 'prayer', 'request', 'consent'].map(id => [id, document.getElementById(id)]));
 const dayInputs = [...document.querySelectorAll('input[name="days"]')];
 const CELLS = {
   '에임홀리': ['관용셀', '희영셀', '서우셀', '설희셀', '하은셀', '병민셀', '프렌즈팀'],
@@ -109,6 +109,7 @@ function showCompletion() {
   clearTimeout(responseTimer);
   pendingRequestId = null;
   form.reset();
+  ['prayer', 'request'].forEach(name => { document.getElementById(name + '-count').textContent = '0'; });
   clearArrival();
   customGroup = false;
   customGroupInput.value = '';
@@ -351,6 +352,8 @@ function renderSummary() {
   rows.push(['이동 수단', inputs.transport.value, 'transport']);
   if (inputs.transport.value === '자차') rows.push(['도착 예정', inputs.arrival.value, 'arrival']);
   rows.push(['취침 여부', inputs.sleep.value, 'sleep']);
+  rows.push(['기도제목', inputs.prayer.value.trim() || '입력 안 함', 'prayer']);
+  rows.push(['요청사항', inputs.request.value.trim() || '입력 안 함', 'request']);
   const target = document.getElementById('review-summary');
   target.replaceChildren(...rows.map(([label, value, step]) => {
     const row = document.createElement('div');
@@ -359,6 +362,7 @@ function renderSummary() {
     title.textContent = label;
     const answer = document.createElement('strong');
     answer.textContent = value;
+    if (step === 'prayer' || step === 'request') answer.classList.add('multiline');
     const edit = document.createElement('button');
     edit.type = 'button';
     edit.className = 'review-edit';
@@ -369,6 +373,20 @@ function renderSummary() {
     return row;
   }));
 }
+
+// 선택 질문은 비어 있으면 "건너뛰기"로 표시합니다.
+function updateNextLabel() {
+  const next = document.getElementById('next-step');
+  const skip = (currentStep === 'prayer' || currentStep === 'request') && !inputs[currentStep].value.trim();
+  next.textContent = skip ? '건너뛰기 →' : '다음 →';
+}
+
+['prayer', 'request'].forEach(name => {
+  inputs[name].addEventListener('input', () => {
+    document.getElementById(name + '-count').textContent = String(inputs[name].value.length);
+    updateNextLabel();
+  });
+});
 
 function stepLabel(key, sequence) {
   const parent = SUB_OF[key] || key;
@@ -409,6 +427,7 @@ function renderStep() {
     const panel = document.querySelector('.step-panel:not([hidden])');
     const field = panel.querySelector('input.entry:not([type=hidden])');
     (field && field.offsetParent !== null ? field : panel.querySelector('.step-title')).focus({ preventScroll: true });
+    updateNextLabel();
   }
 }
 
