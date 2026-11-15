@@ -291,6 +291,24 @@ document.querySelectorAll('[data-options-for] .option').forEach(button => {
   });
 });
 
+// 토요일(1/23)만 부분 참석하는 경우에는 버스를 이용할 수 없습니다.
+function busBlocked() {
+  return inputs.attendance.value === '부분' && dayInputs.some(input => input.checked && input.value === '2027-01-23');
+}
+
+function syncTransport() {
+  const blocked = busBlocked();
+  const bus = document.querySelector('[data-options-for="transport"] [data-value="버스"]');
+  bus.disabled = blocked;
+  bus.setAttribute('aria-disabled', String(blocked));
+  document.getElementById('transport-note').hidden = !blocked;
+  if (blocked && inputs.transport.value === '버스') {
+    inputs.transport.value = '';
+    bus.classList.remove('selected');
+    bus.setAttribute('aria-pressed', 'false');
+  }
+}
+
 function syncDayButtons() {
   document.querySelectorAll('[data-day]').forEach(button => {
     const selected = dayInputs.find(input => input.value === button.dataset.day)?.checked || false;
@@ -307,6 +325,7 @@ function updateAttendance() {
     dayInputs.forEach(input => { input.checked = false; });
   }
   syncDayButtons();
+  syncTransport();
 }
 
 document.querySelectorAll('[data-day]').forEach(button => {
@@ -317,6 +336,7 @@ document.querySelectorAll('[data-day]').forEach(button => {
     if (inputs.attendance.value === '부분') dayInputs.forEach(item => { item.checked = false; });
     input.checked = next;
     syncDayButtons();
+    syncTransport();
     clearStatus();
     if (dayInputs.filter(item => item.checked).length === 1) scheduleAdvance();
   });
@@ -364,6 +384,7 @@ function stepLabel(key, sequence) {
 }
 
 function renderStep() {
+  syncTransport();
   const sequence = activeSteps();
   if (!sequence.includes(currentStep)) currentStep = sequence[0];
   const position = sequence.indexOf(currentStep);
@@ -382,7 +403,9 @@ function renderStep() {
   const percent = Math.round((position + 1) / sequence.length * 100);
   document.getElementById('progress-fill').style.width = percent + '%';
   document.querySelector('.progress').setAttribute('aria-valuenow', String(percent));
-  document.getElementById('previous-step').hidden = position === 0;
+  const previous = document.getElementById('previous-step');
+  previous.hidden = position === 0;
+  previous.textContent = returnToReview ? '← 확인 화면으로' : '← 이전';
   document.getElementById('next-step').hidden = currentStep === 'review';
   document.getElementById('submit-button').hidden = currentStep !== 'review';
   if (currentStep === 'review') renderSummary();
@@ -406,7 +429,10 @@ function validateStep(key) {
     const count = dayInputs.filter(input => input.checked).length;
     if (count !== 1) return '부분 참석 날짜를 하나 선택해 주세요.';
   }
-  if (key === 'transport' && !['자차', '버스'].includes(inputs.transport.value)) return '이동 수단을 선택해 주세요.';
+  if (key === 'transport') {
+    if (!['자차', '버스'].includes(inputs.transport.value)) return '이동 수단을 선택해 주세요.';
+    if (inputs.transport.value === '버스' && busBlocked()) return '토요일 부분 참석은 버스를 이용할 수 없습니다.';
+  }
   if (key === 'rrn' && !/^\d{6}-\d{7}$/.test(inputs.rrn.value)) return '주민등록번호 13자리를 확인해 주세요.';
   if (key === 'arrival' && !/^\d{2}:\d{2}$/.test(inputs.arrival.value)) return '도착 예정 시간을 입력해 주세요.';
   if (key === 'sleep' && !['취침', '취침 안 함'].includes(inputs.sleep.value)) return '취침 여부를 선택해 주세요.';
@@ -447,6 +473,7 @@ function scheduleAdvance() {
 
 document.getElementById('next-step').addEventListener('click', goNext);
 document.getElementById('previous-step').addEventListener('click', () => {
+  if (returnToReview) { goTo('review'); return; }
   const sequence = activeSteps();
   goTo(sequence[sequence.indexOf(currentStep) - 1]);
 });

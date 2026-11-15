@@ -38,6 +38,7 @@ function doPost(e) {
     if (new Set(days).size !== days.length) throw new Error('invalid');
     if (attendance === '전' && days.length !== ALLOWED_DAYS.length) throw new Error('invalid');
     if (attendance === '부분' && days.length !== 1) throw new Error('invalid');
+    if (attendance === '부분' && days[0] === '2027-01-23' && transport === '버스') throw new Error('invalid');
 
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = spreadsheet && spreadsheet.getSheetByName(SHEET_NAME);
