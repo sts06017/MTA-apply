@@ -17,6 +17,7 @@ const CELLS = {
 const customGroupInput = document.getElementById('custom-group');
 let customGroup = false;
 let returnToReview = false;
+let showRrn = false;
 let allowUnload = false;
 const status = document.getElementById('status');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -345,7 +346,7 @@ function renderSummary() {
     ...(customGroup ? [] : [['소속 셀', inputs.cell.value, 'cell']]),
     ['이름', inputs.name.value.trim(), 'name'],
     ['연락처', inputs.phone.value.trim(), 'phone'],
-    ['주민등록번호', inputs.rrn.value.replace(/^(\d{6}-\d)\d{6}$/, '$1******'), 'rrn'],
+    ['주민등록번호', showRrn ? inputs.rrn.value : inputs.rrn.value.replace(/^(\d{6}-\d)\d{6}$/, '$1******'), 'rrn'],
     ['참석 구분', attendanceLabels[inputs.attendance.value] || '', 'attendance']
   ];
   rows.push(['참석 날짜', dayInputs.filter(input => input.checked).map(input => Number(input.value.slice(-2)) + '일').join(', '), inputs.attendance.value === '부분' ? 'days' : 'attendance']);
@@ -369,6 +370,21 @@ function renderSummary() {
     edit.textContent = '수정';
     edit.setAttribute('aria-label', label + ' 수정');
     edit.addEventListener('click', () => { returnToReview = true; goTo(step); });
+    if (step === 'rrn') {
+      const reveal = document.createElement('button');
+      reveal.type = 'button';
+      reveal.className = 'review-edit';
+      reveal.textContent = showRrn ? '숨기기' : '보기';
+      reveal.setAttribute('aria-pressed', String(showRrn));
+      reveal.setAttribute('aria-label', '주민등록번호 ' + (showRrn ? '숨기기' : '전체 보기'));
+      reveal.addEventListener('click', () => { showRrn = !showRrn; renderSummary(); });
+      const actions = document.createElement('div');
+      actions.className = 'review-actions';
+      actions.append(reveal, edit);
+      row.classList.add('rrn');
+      row.append(title, answer, actions);
+      return row;
+    }
     row.append(title, answer, edit);
     return row;
   }));
@@ -397,6 +413,7 @@ function stepLabel(key, sequence) {
 }
 
 function renderStep() {
+  if (currentStep !== 'review') showRrn = false;
   syncTransport();
   const sequence = activeSteps();
   if (!sequence.includes(currentStep)) currentStep = sequence[0];
