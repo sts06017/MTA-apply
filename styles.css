@@ -28,3 +28,4 @@ body.motion-ready .reveal{opacity:0;transform:translate3d(0,34px,0) rotate(-1deg
 .confetti i{position:absolute;top:-14px;left:var(--x);width:9px;height:14px;border-radius:2px;animation:confetti-fall 2.1s var(--d) cubic-bezier(.3,.6,.4,1) both}
 @keyframes confetti-fall{to{translate:var(--dx) 105vh;rotate:var(--r);opacity:.9}}
 @media(prefers-reduced-motion:reduce){.shake,.complete-mark{animation:none}}
+.option:disabled{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none;background:#ece6d6}.option:disabled:hover{transform:none}.option-note{margin:16px 0 0;padding:12px 14px;border-radius:8px;background:#fbe9e5;color:#8d3328;font-size:13px;font-weight:700;line-height:1.6}
