@@ -160,6 +160,13 @@ function setChoice(name, value) {
   if (name === 'transport' && value !== '자차') inputs.arrival.value = '';
 }
 
+inputs.phone.addEventListener('input', () => {
+  const d = inputs.phone.value.replace(/\D/g, '').slice(0, 11);
+  const head = d.startsWith('02') ? 2 : 3;
+  const parts = [d.slice(0, head), d.slice(head, head + 4), d.slice(head + 4)];
+  inputs.phone.value = parts.filter(Boolean).join('-');
+  clearStatus();
+});
 inputs.rrn.addEventListener('input', () => {
   const digits = inputs.rrn.value.replace(/\D/g, '').slice(0, 13);
   inputs.rrn.value = digits.length > 6 ? digits.slice(0, 6) + '-' + digits.slice(6) : digits;
