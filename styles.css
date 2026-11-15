@@ -24,9 +24,6 @@ body.motion-ready .reveal{opacity:0;transform:translate3d(0,34px,0) rotate(-1deg
 .next-button.is-loading:before{content:"";display:inline-block;width:13px;height:13px;margin-right:9px;border:2px solid #fff;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:spin .7s linear infinite}
 @keyframes mark-pop{0%{scale:.4;opacity:0}60%{scale:1.15;opacity:1}100%{scale:1}}
 .complete-mark{animation:mark-pop .6s .15s cubic-bezier(.2,.8,.2,1) both}
-.confetti{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:50}
-.confetti i{position:absolute;top:-14px;left:var(--x);width:9px;height:14px;border-radius:2px;animation:confetti-fall 2.1s var(--d) cubic-bezier(.3,.6,.4,1) both}
-@keyframes confetti-fall{to{translate:var(--dx) 105vh;rotate:var(--r);opacity:.9}}
 @media(prefers-reduced-motion:reduce){.shake,.complete-mark{animation:none}}
 .option:disabled{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none;background:#ece6d6}.option:disabled:hover{transform:none}.option-note{margin:16px 0 0;padding:12px 14px;border-radius:8px;background:#fbe9e5;color:#8d3328;font-size:13px;font-weight:700;line-height:1.6}
 .optional-tag{display:inline-block;margin-left:6px;padding:3px 10px;border:1.5px solid #263839;border-radius:99px;font-size:13px;font-weight:900;letter-spacing:0;vertical-align:middle}
