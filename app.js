@@ -5,6 +5,9 @@ const completePage = document.getElementById('complete-page');
 const responseFrame = document.getElementById('response-frame');
 const form = document.getElementById('retreat-form');
 const allSteps = ['youthGroup', 'cell', 'name', 'phone', 'rrn', 'attendance', 'days', 'transport', 'arrival', 'sleep', 'review'];
+// 조건에 따라 나타나는 질문은 앞 질문의 하위 번호(예: 05-1)로 표시해 전체 개수가 변하지 않게 합니다.
+const SUB_OF = { cell: 'youthGroup', days: 'attendance', arrival: 'transport' };
+const mainSteps = allSteps.filter(key => !SUB_OF[key]);
 const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'phone', 'rrn', 'attendance', 'transport', 'arrival', 'sleep', 'consent'].map(id => [id, document.getElementById(id)]));
 const dayInputs = [...document.querySelectorAll('input[name="days"]')];
 const CELLS = {
@@ -235,6 +238,14 @@ function renderSummary() {
   }));
 }
 
+function stepLabel(key, sequence) {
+  const parent = SUB_OF[key] || key;
+  const number = String(mainSteps.indexOf(parent) + 1).padStart(2, '0');
+  if (!SUB_OF[key]) return number;
+  const sub = sequence.filter(item => SUB_OF[item] === parent).indexOf(key) + 1;
+  return number + '-' + sub;
+}
+
 function renderStep() {
   const sequence = activeSteps();
   if (!sequence.includes(currentStep)) currentStep = sequence[0];
@@ -242,6 +253,7 @@ function renderStep() {
   document.querySelectorAll('.step-panel').forEach(panel => {
     const visible = panel.dataset.step === currentStep;
     panel.hidden = !visible;
+    if (visible && panel.dataset.step !== 'review') panel.querySelector('.step-kicker').textContent = 'QUESTION ' + stepLabel(currentStep, sequence);
     if (visible && !reduceMotion.matches) {
       panel.classList.remove('is-entering');
       void panel.offsetWidth;
@@ -249,7 +261,7 @@ function renderStep() {
     }
   });
   document.getElementById('step-counter').textContent =
-    String(position + 1).padStart(2, '0') + ' / ' + String(sequence.length).padStart(2, '0');
+    stepLabel(currentStep, sequence) + ' / ' + String(mainSteps.length).padStart(2, '0');
   const percent = Math.round((position + 1) / sequence.length * 100);
   document.getElementById('progress-fill').style.width = percent + '%';
   document.querySelector('.progress').setAttribute('aria-valuenow', String(percent));
