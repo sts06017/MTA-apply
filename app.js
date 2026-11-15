@@ -11,8 +11,8 @@ const mainSteps = allSteps.filter(key => !SUB_OF[key]);
 const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'phone', 'rrn', 'attendance', 'transport', 'arrival', 'sleep', 'prayer', 'request', 'consent'].map(id => [id, document.getElementById(id)]));
 const dayInputs = [...document.querySelectorAll('input[name="days"]')];
 const CELLS = {
-  '에임홀리': ['관용셀', '희영셀', '서우셀', '설희셀', '하은셀', '병민셀', '프렌즈팀'],
-  '에임하이': ['서영셀', '효성셀', '지민셀', '수빈셀', '프렌즈팀']
+  '에임홀리': ['관용셀', '희영셀', '서우셀', '설희셀', '하은셀', '병민셀', '프렌즈팀', '없음'],
+  '에임하이': ['서영셀', '효성셀', '지민셀', '수빈셀', '프렌즈팀', '없음']
 };
 const customGroupInput = document.getElementById('custom-group');
 let customGroup = false;
