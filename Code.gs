@@ -20,12 +20,11 @@ function doPost(e) {
     const name = clean(p.name, 40);
     const phone = clean(p.phone, 20);
     const cell = clean(p.cell, 40);
-    const youthGroup = clean(p.youthGroup, 10);
+    const youthGroup = clean(p.youthGroup, 20);
     const attendance = clean(p.attendance, 10);
     const transport = clean(p.transport, 10);
 
-    if (!name || !cell || !/^[0-9+() -]{9,20}$/.test(phone)) throw new Error('invalid');
-    if (!['하이', '홀리'].includes(youthGroup)) throw new Error('invalid');
+    if (!name || !youthGroup || !/^[0-9+() -]{9,20}$/.test(phone)) throw new Error('invalid');
     if (!['전', '부분', '불참석'].includes(attendance)) throw new Error('invalid');
     if (p.consent !== 'yes') throw new Error('invalid');
     if (attendance === '불참석') {
