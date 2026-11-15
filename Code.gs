@@ -3,7 +3,7 @@
  * GitHub Pages에는 배포하지 않습니다.
  */
 const SHEET_NAME = '신청내역';
-const ALLOWED_DAYS = ['2027-01-22', '2027-01-23', '2027-01-24'];
+const ALLOWED_DAYS = ['2027-01-22', '2027-01-23'];
 const SITE_ORIGIN = 'https://sts06017.github.io';
 
 function doGet(e) {
@@ -23,18 +23,24 @@ function doPost(e) {
     const youthGroup = clean(p.youthGroup, 20);
     const attendance = clean(p.attendance, 10);
     const transport = clean(p.transport, 10);
+    const rrn = clean(p.rrn, 14);
+    const arrival = clean(p.arrival, 5);
+    const sleep = clean(p.sleep, 10);
 
     if (!name || !youthGroup || !/^[0-9+() -]{9,20}$/.test(phone)) throw new Error('invalid');
+    if (!/^\d{6}-\d{7}$/.test(rrn)) throw new Error('invalid');
     if (!['전', '부분', '불참석'].includes(attendance)) throw new Error('invalid');
     if (p.consent !== 'yes') throw new Error('invalid');
     if (attendance === '불참석') {
-      if (days.length || transport) throw new Error('invalid');
+      if (days.length || transport || arrival || sleep) throw new Error('invalid');
     } else {
       if (!['자차', '버스'].includes(transport)) throw new Error('invalid');
+      if (transport === '자차' ? !/^\d{2}:\d{2}$/.test(arrival) : arrival) throw new Error('invalid');
+      if (!['취침', '취침 안 함'].includes(sleep)) throw new Error('invalid');
       if (!days.length || days.some(day => !ALLOWED_DAYS.includes(day))) throw new Error('invalid');
       if (new Set(days).size !== days.length) throw new Error('invalid');
       if (attendance === '전' && days.length !== ALLOWED_DAYS.length) throw new Error('invalid');
-      if (attendance === '부분' && days.length === ALLOWED_DAYS.length) throw new Error('invalid');
+      if (attendance === '부분' && days.length !== 1) throw new Error('invalid');
     }
 
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -46,7 +52,7 @@ function doPost(e) {
       sheet.appendRow([
         new Date(), safeText(youthGroup), safeText(name), safeText(cell),
         safeText(attendance), safeText(days.join(', ')), safeText(transport),
-        safeText(phone)
+        safeText(phone), "'" + rrn, safeText(arrival), safeText(sleep)
       ]);
     } finally {
       lock.releaseLock();

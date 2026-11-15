@@ -4,8 +4,8 @@ const applicationPage = document.getElementById('application-page');
 const completePage = document.getElementById('complete-page');
 const responseFrame = document.getElementById('response-frame');
 const form = document.getElementById('retreat-form');
-const allSteps = ['youthGroup', 'cell', 'name', 'attendance', 'days', 'transport', 'phone', 'review'];
-const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'attendance', 'transport', 'phone', 'consent'].map(id => [id, document.getElementById(id)]));
+const allSteps = ['youthGroup', 'cell', 'name', 'phone', 'rrn', 'attendance', 'days', 'transport', 'arrival', 'sleep', 'review'];
+const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'phone', 'rrn', 'attendance', 'transport', 'arrival', 'sleep', 'consent'].map(id => [id, document.getElementById(id)]));
 const dayInputs = [...document.querySelectorAll('input[name="days"]')];
 const CELLS = {
   '에임홀리': ['관용셀', '희영셀', '서우셀', '설희셀', '하은셀', '병민셀', '프렌즈팀'],
@@ -28,7 +28,9 @@ function activeSteps() {
   return allSteps.filter(key =>
     (key !== 'cell' || !customGroup) &&
     (key !== 'days' || attendance === '부분') &&
-    (key !== 'transport' || attendance !== '불참석')
+    (key !== 'transport' || attendance !== '불참석') &&
+    (key !== 'arrival' || (attendance !== '불참석' && inputs.transport.value === '자차')) &&
+    (key !== 'sleep' || attendance !== '불참석')
   );
 }
 
@@ -155,8 +157,14 @@ function setChoice(name, value) {
   });
   clearStatus();
   if (name === 'attendance') updateAttendance();
+  if (name === 'transport' && value !== '자차') inputs.arrival.value = '';
 }
 
+inputs.rrn.addEventListener('input', () => {
+  const digits = inputs.rrn.value.replace(/\D/g, '').slice(0, 13);
+  inputs.rrn.value = digits.length > 6 ? digits.slice(0, 6) + '-' + digits.slice(6) : digits;
+  clearStatus();
+});
 customGroupInput.addEventListener('input', () => { inputs.youthGroup.value = customGroupInput.value.trim(); clearStatus(); });
 document.querySelectorAll('[data-options-for] .option').forEach(button => {
   button.setAttribute('aria-pressed', 'false');
@@ -179,12 +187,15 @@ function updateAttendance() {
     dayInputs.forEach(input => { input.checked = true; });
   } else if (value === '불참석') {
     dayInputs.forEach(input => { input.checked = false; });
-    inputs.transport.value = '';
-    document.querySelectorAll('[data-options-for="transport"] .option').forEach(button => {
-      button.classList.remove('selected');
-      button.setAttribute('aria-pressed', 'false');
+    ['transport', 'sleep'].forEach(name => {
+      inputs[name].value = '';
+      document.querySelectorAll('[data-options-for="' + name + '"] .option').forEach(button => {
+        button.classList.remove('selected');
+        button.setAttribute('aria-pressed', 'false');
+      });
     });
-  } else if (value === '부분' && dayInputs.every(input => input.checked)) {
+    inputs.arrival.value = '';
+  } else if (value === '부분' && dayInputs.filter(input => input.checked).length !== 1) {
     dayInputs.forEach(input => { input.checked = false; });
   }
   syncDayButtons();
@@ -194,7 +205,9 @@ document.querySelectorAll('[data-day]').forEach(button => {
   button.setAttribute('aria-pressed', 'false');
   button.addEventListener('click', () => {
     const input = dayInputs.find(item => item.value === button.dataset.day);
-    input.checked = !input.checked;
+    const next = !input.checked;
+    if (inputs.attendance.value === '부분') dayInputs.forEach(item => { item.checked = false; });
+    input.checked = next;
     syncDayButtons();
     clearStatus();
   });
@@ -206,13 +219,16 @@ function renderSummary() {
     ['소속', inputs.youthGroup.value],
     ...(customGroup ? [] : [['소속 셀', inputs.cell.value]]),
     ['이름', inputs.name.value.trim()],
+    ['연락처', inputs.phone.value.trim()],
+    ['주민등록번호', inputs.rrn.value.replace(/^(\d{6}-\d)\d{6}$/, '$1******')],
     ['참석 구분', attendanceLabels[inputs.attendance.value] || '']
   ];
   if (inputs.attendance.value !== '불참석') {
     rows.push(['참석 날짜', dayInputs.filter(input => input.checked).map(input => Number(input.value.slice(-2)) + '일').join(', ')]);
     rows.push(['이동 수단', inputs.transport.value]);
+    if (inputs.transport.value === '자차') rows.push(['도착 예정', inputs.arrival.value]);
+    rows.push(['취침 여부', inputs.sleep.value]);
   }
-  rows.push(['연락처', inputs.phone.value.trim()]);
   const target = document.getElementById('review-summary');
   target.replaceChildren(...rows.map(([label, value]) => {
     const row = document.createElement('div');
@@ -262,9 +278,12 @@ function validateStep(key) {
   if (key === 'attendance' && !['전', '부분', '불참석'].includes(inputs.attendance.value)) return '참석 구분을 선택해 주세요.';
   if (key === 'days') {
     const count = dayInputs.filter(input => input.checked).length;
-    if (count < 1 || count > 2) return '부분 참석 날짜를 하나 또는 두 개 선택해 주세요.';
+    if (count !== 1) return '부분 참석 날짜를 하나 선택해 주세요.';
   }
   if (key === 'transport' && !['자차', '버스'].includes(inputs.transport.value)) return '이동 수단을 선택해 주세요.';
+  if (key === 'rrn' && !/^\d{6}-\d{7}$/.test(inputs.rrn.value)) return '주민등록번호 13자리를 확인해 주세요.';
+  if (key === 'arrival' && !/^\d{2}:\d{2}$/.test(inputs.arrival.value)) return '도착 예정 시간을 입력해 주세요.';
+  if (key === 'sleep' && !['취침', '취침 안 함'].includes(inputs.sleep.value)) return '취침 여부를 선택해 주세요.';
   if (key === 'phone' && !/^[0-9+() -]{9,20}$/.test(inputs.phone.value.trim())) return '연락처를 확인해 주세요.';
   if (key === 'review' && !inputs.consent.checked) return '개인정보 수집·이용 동의가 필요합니다.';
   return '';
@@ -284,7 +303,7 @@ document.getElementById('previous-step').addEventListener('click', () => {
   renderStep();
   applicationPage.scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' });
 });
-[inputs.name, inputs.phone, customGroupInput].forEach(input => {
+[inputs.name, inputs.phone, inputs.rrn, inputs.arrival, customGroupInput].forEach(input => {
   input.addEventListener('keydown', event => {
     if (event.key === 'Enter') { event.preventDefault(); document.getElementById('next-step').click(); }
   });
