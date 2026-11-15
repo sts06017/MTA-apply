@@ -12,3 +12,19 @@ body.motion-ready .reveal{opacity:0;transform:translate3d(0,34px,0) rotate(-1deg
 @media(max-width:380px){.chip-grid{grid-template-columns:repeat(4,1fr)}.poster-title{font-size:65px}.poster-star{width:95px;height:95px}.poster-star:after{font-size:80px;line-height:87px}.info-grid{grid-template-columns:1fr}.option-grid.dates{grid-template-columns:1fr}.option-grid.dates .option{min-height:70px;display:flex;text-align:left}.option-grid.dates .indicator{margin:0}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}body.motion-ready .reveal{opacity:1!important;transform:none!important;filter:none!important}.poster-star{translate:0 0!important}}
 .verse .eyebrow{display:block;margin-bottom:28px}
+
+.option:focus-visible,.chip:focus-visible,.next-button:focus-visible,.text-button:focus-visible,.floating-cta:focus-visible,.review-edit:focus-visible{outline:3px solid #ed5b49;outline-offset:3px}
+.entry[aria-invalid=true]{border-color:#b13e35}
+@keyframes shake{0%,100%{translate:0}20%{translate:-8px}40%{translate:7px}60%{translate:-5px}80%{translate:3px}}
+.shake{animation:shake .38s ease}
+.review-row{align-items:center}.review-row strong{flex:1}
+.review-edit{flex:none;background:#fffaf0;border:1.5px solid #263839;border-radius:99px;color:#263839;font-size:12px;font-weight:900;padding:5px 12px;transition:background .2s,transform .2s}.review-edit:hover{background:#f6e688}.review-edit:active{transform:scale(.94)}
+.badge{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:99px;background:#ed5b49;color:#fff;font-size:11px;letter-spacing:.03em;vertical-align:1px}.badge:empty{display:none}.badge.closed{background:#657273}
+@keyframes spin{to{rotate:360deg}}
+.next-button.is-loading:before{content:"";display:inline-block;width:13px;height:13px;margin-right:9px;border:2px solid #fff;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:spin .7s linear infinite}
+@keyframes mark-pop{0%{scale:.4;opacity:0}60%{scale:1.15;opacity:1}100%{scale:1}}
+.complete-mark{animation:mark-pop .6s .15s cubic-bezier(.2,.8,.2,1) both}
+.confetti{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:50}
+.confetti i{position:absolute;top:-14px;left:var(--x);width:9px;height:14px;border-radius:2px;animation:confetti-fall 2.1s var(--d) cubic-bezier(.3,.6,.4,1) both}
+@keyframes confetti-fall{to{translate:var(--dx) 105vh;rotate:var(--r);opacity:.9}}
+@media(prefers-reduced-motion:reduce){.shake,.complete-mark{animation:none}}

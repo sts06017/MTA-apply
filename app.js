@@ -16,6 +16,9 @@ const CELLS = {
 };
 const customGroupInput = document.getElementById('custom-group');
 let customGroup = false;
+let advanceTimer = null;
+let returnToReview = false;
+let allowUnload = false;
 const status = document.getElementById('status');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let currentStep = 'youthGroup';
@@ -64,10 +67,38 @@ document.getElementById('complete-home').addEventListener('click', () => {
   showView();
 });
 window.addEventListener('hashchange', showView);
-window.addEventListener('popstate', showView);
+window.addEventListener('popstate', event => {
+  if (location.hash === '#apply' && event.state && event.state.step) currentStep = event.state.step;
+  showView();
+});
 
-function clearStatus() { status.className = 'status'; status.textContent = ''; }
-function showError(message) { status.className = 'status'; status.textContent = message; }
+function setSubmitting(active) {
+  const button = document.getElementById('submit-button');
+  button.disabled = active;
+  button.classList.toggle('is-loading', active);
+  button.textContent = active ? '제출 중…' : '신청서 제출하기 ↗';
+}
+
+function clearStatus() {
+  status.className = 'status';
+  status.textContent = '';
+  document.querySelectorAll('[aria-invalid]').forEach(element => element.removeAttribute('aria-invalid'));
+}
+function showError(message) {
+  status.className = 'status';
+  status.textContent = message;
+  if (reduceMotion.matches) return;
+  const panel = document.querySelector('.step-panel:not([hidden])');
+  const target = panel && panel.querySelector('.entry:not([type=hidden]), .option-grid, .time-picker');
+  [status, target].forEach(element => {
+    if (!element) return;
+    element.classList.remove('shake');
+    void element.offsetWidth;
+    element.classList.add('shake');
+  });
+  const field = panel && panel.querySelector('input.entry:not([type=hidden])');
+  if (field && field.offsetParent !== null) { field.setAttribute('aria-invalid', 'true'); field.focus({ preventScroll: true }); }
+}
 
 function trustedScriptOrigin(origin) {
   return origin === 'https://script.google.com' ||
@@ -84,7 +115,8 @@ function showCompletion() {
   customGroupInput.value = '';
   document.getElementById('custom-group-wrap').hidden = true;
   renderCellOptions();
-  document.getElementById('submit-button').disabled = false;
+  setSubmitting(false);
+  returnToReview = false;
   document.querySelectorAll('.option.selected').forEach(button => button.classList.remove('selected'));
   document.querySelectorAll('.option[aria-pressed]').forEach(button => button.setAttribute('aria-pressed', 'false'));
   document.getElementById('review-summary').replaceChildren();
@@ -96,7 +128,32 @@ function showCompletion() {
   document.title = '신청 완료 · 2027 More Than Able';
   scrollToTop();
   document.getElementById('complete-title').focus({ preventScroll: true });
+  burstConfetti();
 }
+
+function burstConfetti() {
+  if (reduceMotion.matches) return;
+  const layer = document.createElement('div');
+  layer.className = 'confetti';
+  layer.setAttribute('aria-hidden', 'true');
+  const colors = ['#ed5b49', '#f6e688', '#263839', '#ff755c', '#8fb98b'];
+  for (let index = 0; index < 36; index += 1) {
+    const piece = document.createElement('i');
+    piece.style.setProperty('--x', (Math.random() * 100).toFixed(1) + 'vw');
+    piece.style.setProperty('--dx', (Math.random() * 160 - 80).toFixed(0) + 'px');
+    piece.style.setProperty('--r', (Math.random() * 720 - 360).toFixed(0) + 'deg');
+    piece.style.setProperty('--d', (Math.random() * 500).toFixed(0) + 'ms');
+    piece.style.background = colors[index % colors.length];
+    layer.append(piece);
+  }
+  document.body.append(layer);
+  setTimeout(() => layer.remove(), 2600);
+}
+
+window.addEventListener('beforeunload', event => {
+  const dirty = !applicationPage.hidden && [inputs.name, inputs.phone, inputs.rrn].some(input => input.value.trim());
+  if (dirty && !allowUnload) { event.preventDefault(); event.returnValue = ''; }
+});
 
 window.addEventListener('message', event => {
   if (!trustedScriptOrigin(event.origin)) return;
@@ -112,7 +169,7 @@ window.addEventListener('message', event => {
   if (data.kind === 'success') showCompletion();
   else {
     showError('접수를 확인하지 못했습니다. 운영진에게 문의하거나 잠시 후 다시 시도해 주세요.');
-    document.getElementById('submit-button').disabled = false;
+    setSubmitting(false);
   }
 });
 
@@ -173,7 +230,12 @@ function buildChips(containerId, values, label, key) {
     chip.className = 'chip';
     chip.dataset.value = String(value);
     chip.textContent = pad2(value) + label;
-    chip.addEventListener('click', () => { arrivalState[key] = value; syncArrival(); clearStatus(); });
+    chip.addEventListener('click', () => {
+      arrivalState[key] = value;
+      syncArrival();
+      clearStatus();
+      if (arrivalState.hour !== null && arrivalState.minute !== null) scheduleAdvance();
+    });
     return chip;
   }));
 }
@@ -194,6 +256,7 @@ function setChoice(name, value) {
     renderCellOptions();
     clearStatus();
     if (customGroup) customGroupInput.focus();
+    else scheduleAdvance();
     return;
   }
   inputs[name].value = value;
@@ -205,6 +268,7 @@ function setChoice(name, value) {
   clearStatus();
   if (name === 'attendance') updateAttendance();
   if (name === 'transport' && value !== '자차') clearArrival();
+  scheduleAdvance();
 }
 
 inputs.phone.addEventListener('input', () => {
@@ -254,32 +318,39 @@ document.querySelectorAll('[data-day]').forEach(button => {
     input.checked = next;
     syncDayButtons();
     clearStatus();
+    if (dayInputs.filter(item => item.checked).length === 1) scheduleAdvance();
   });
 });
 
 function renderSummary() {
   const attendanceLabels = { '전': '전 일정', '부분': '부분 참석' };
   const rows = [
-    ['소속', inputs.youthGroup.value],
-    ...(customGroup ? [] : [['소속 셀', inputs.cell.value]]),
-    ['이름', inputs.name.value.trim()],
-    ['연락처', inputs.phone.value.trim()],
-    ['주민등록번호', inputs.rrn.value.replace(/^(\d{6}-\d)\d{6}$/, '$1******')],
-    ['참석 구분', attendanceLabels[inputs.attendance.value] || '']
+    ['소속', inputs.youthGroup.value, 'youthGroup'],
+    ...(customGroup ? [] : [['소속 셀', inputs.cell.value, 'cell']]),
+    ['이름', inputs.name.value.trim(), 'name'],
+    ['연락처', inputs.phone.value.trim(), 'phone'],
+    ['주민등록번호', inputs.rrn.value.replace(/^(\d{6}-\d)\d{6}$/, '$1******'), 'rrn'],
+    ['참석 구분', attendanceLabels[inputs.attendance.value] || '', 'attendance']
   ];
-  rows.push(['참석 날짜', dayInputs.filter(input => input.checked).map(input => Number(input.value.slice(-2)) + '일').join(', ')]);
-  rows.push(['이동 수단', inputs.transport.value]);
-  if (inputs.transport.value === '자차') rows.push(['도착 예정', inputs.arrival.value]);
-  rows.push(['취침 여부', inputs.sleep.value]);
+  rows.push(['참석 날짜', dayInputs.filter(input => input.checked).map(input => Number(input.value.slice(-2)) + '일').join(', '), inputs.attendance.value === '부분' ? 'days' : 'attendance']);
+  rows.push(['이동 수단', inputs.transport.value, 'transport']);
+  if (inputs.transport.value === '자차') rows.push(['도착 예정', inputs.arrival.value, 'arrival']);
+  rows.push(['취침 여부', inputs.sleep.value, 'sleep']);
   const target = document.getElementById('review-summary');
-  target.replaceChildren(...rows.map(([label, value]) => {
+  target.replaceChildren(...rows.map(([label, value, step]) => {
     const row = document.createElement('div');
     row.className = 'review-row';
     const title = document.createElement('span');
     title.textContent = label;
     const answer = document.createElement('strong');
     answer.textContent = value;
-    row.append(title, answer);
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'review-edit';
+    edit.textContent = '수정';
+    edit.setAttribute('aria-label', label + ' 수정');
+    edit.addEventListener('click', () => { returnToReview = true; goTo(step); });
+    row.append(title, answer, edit);
     return row;
   }));
 }
@@ -315,8 +386,12 @@ function renderStep() {
   document.getElementById('next-step').hidden = currentStep === 'review';
   document.getElementById('submit-button').hidden = currentStep !== 'review';
   if (currentStep === 'review') renderSummary();
-  if (!applicationPage.hidden) document.querySelector('.step-panel:not([hidden]) .step-title').focus({ preventScroll: true });
   clearStatus();
+  if (!applicationPage.hidden) {
+    const panel = document.querySelector('.step-panel:not([hidden])');
+    const field = panel.querySelector('input.entry:not([type=hidden])');
+    (field && field.offsetParent !== null ? field : panel.querySelector('.step-title')).focus({ preventScroll: true });
+  }
 }
 
 function validateStep(key) {
@@ -340,21 +415,43 @@ function validateStep(key) {
   return '';
 }
 
-document.getElementById('next-step').addEventListener('click', () => {
+function goTo(step) {
+  clearTimeout(advanceTimer);
+  currentStep = step;
+  if (step === 'review') returnToReview = false;
+  history.pushState({ step }, '', '#apply');
+  renderStep();
+  applicationPage.scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' });
+}
+
+function goNext() {
   const error = validateStep(currentStep);
   if (error) { showError(error); return; }
   const sequence = activeSteps();
-  currentStep = sequence[sequence.indexOf(currentStep) + 1];
-  renderStep();
-  applicationPage.scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' });
-});
+  if (returnToReview) {
+    const invalid = sequence.find(key => key !== 'review' && validateStep(key));
+    goTo(invalid || 'review');
+    return;
+  }
+  goTo(sequence[sequence.indexOf(currentStep) + 1]);
+}
+
+// 선택형 질문은 고른 뒤 잠깐 보여주고 자동으로 다음 단계로 넘어갑니다.
+function scheduleAdvance() {
+  clearTimeout(advanceTimer);
+  const step = currentStep;
+  advanceTimer = setTimeout(() => {
+    if (currentStep === step && !validateStep(step)) goNext();
+  }, reduceMotion.matches ? 120 : 380);
+}
+
+document.getElementById('next-step').addEventListener('click', goNext);
 document.getElementById('previous-step').addEventListener('click', () => {
   const sequence = activeSteps();
-  currentStep = sequence[sequence.indexOf(currentStep) - 1];
-  renderStep();
-  applicationPage.scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' });
+  goTo(sequence[sequence.indexOf(currentStep) - 1]);
 });
 [inputs.name, inputs.phone, inputs.rrn, customGroupInput].forEach(input => {
+  input.setAttribute('enterkeyhint', 'next');
   input.addEventListener('keydown', event => {
     if (event.key === 'Enter') { event.preventDefault(); document.getElementById('next-step').click(); }
   });
@@ -389,14 +486,16 @@ form.addEventListener('submit', event => {
       if (pendingRequestId !== requestId) return;
       pendingRequestId = null;
       showError('접수 결과를 확인하지 못했습니다. 중복 신청을 피하려면 운영진에게 먼저 확인해 주세요.');
+      setSubmitting(false);
     }, 30000);
   } else {
     form.removeAttribute('target');
     document.getElementById('request-id').value = '';
   }
-  document.getElementById('submit-button').disabled = true;
+  setSubmitting(true);
+  if (!inlineAvailable) allowUnload = true;
 });
-window.addEventListener('pageshow', () => { document.getElementById('submit-button').disabled = false; });
+window.addEventListener('pageshow', () => { allowUnload = false; setSubmitting(false); });
 
 if (!reduceMotion.matches && 'IntersectionObserver' in window) {
   const elements = document.querySelectorAll('.verse .eyebrow,.verse h2,.verse blockquote,.verse-ref,#info .eyebrow,#info h2,.section-intro,.info-card,.schedule-row,.section-note');
@@ -422,5 +521,23 @@ if (!reduceMotion.matches && 'IntersectionObserver' in window) {
     });
   }, { passive: true });
 }
+
+// 얼리버드 마감(2026-12-13, 한국 시간) 카운트다운
+(function earlyBird() {
+  const kst = new Date(Date.now() + 9 * 3600000);
+  const today = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate());
+  const left = Math.round((Date.UTC(2026, 11, 13) - today) / 86400000);
+  const badge = document.getElementById('fee-badge');
+  if (!badge) return;
+  if (left >= 0) {
+    badge.textContent = left === 0 ? '오늘 마감' : 'D-' + left;
+    return;
+  }
+  badge.textContent = '얼리버드 마감';
+  badge.classList.add('closed');
+  document.getElementById('fee-title').textContent = '참가비 60,000원';
+  document.getElementById('fee-note').textContent = '얼리버드 신청이 마감되었습니다.';
+  document.getElementById('fee-footnote').hidden = true;
+})();
 
 showView();
