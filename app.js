@@ -129,26 +129,6 @@ function showCompletion() {
   document.title = '신청 완료 · 2027 More Than Able';
   scrollToTop();
   document.getElementById('complete-title').focus({ preventScroll: true });
-  burstConfetti();
-}
-
-function burstConfetti() {
-  if (reduceMotion.matches) return;
-  const layer = document.createElement('div');
-  layer.className = 'confetti';
-  layer.setAttribute('aria-hidden', 'true');
-  const colors = ['#ed5b49', '#f6e688', '#263839', '#ff755c', '#8fb98b'];
-  for (let index = 0; index < 36; index += 1) {
-    const piece = document.createElement('i');
-    piece.style.setProperty('--x', (Math.random() * 100).toFixed(1) + 'vw');
-    piece.style.setProperty('--dx', (Math.random() * 160 - 80).toFixed(0) + 'px');
-    piece.style.setProperty('--r', (Math.random() * 720 - 360).toFixed(0) + 'deg');
-    piece.style.setProperty('--d', (Math.random() * 500).toFixed(0) + 'ms');
-    piece.style.background = colors[index % colors.length];
-    layer.append(piece);
-  }
-  document.body.append(layer);
-  setTimeout(() => layer.remove(), 2600);
 }
 
 window.addEventListener('beforeunload', event => {
