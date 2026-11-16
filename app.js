@@ -219,7 +219,7 @@ function buildChips(containerId, values, label, key) {
     return chip;
   }));
 }
-buildChips('arrival-hours', Array.from({ length: 18 }, (_, index) => index + 6), '시', 'hour');
+buildChips('arrival-hours', Array.from({ length: 24 }, (_, index) => index), '시', 'hour');
 buildChips('arrival-minutes', [0, 10, 20, 30, 40, 50], '분', 'minute');
 
 function setChoice(name, value) {
