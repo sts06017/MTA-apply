@@ -536,18 +536,6 @@ if (!reduceMotion.matches && 'IntersectionObserver' in window) {
     observer.observe(element);
   });
   document.body.classList.add('motion-ready');
-  let scheduled = false;
-  window.addEventListener('scroll', () => {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => {
-      scheduled = false;
-      if (infoPage.hidden) return;
-      const rect = document.querySelector('.poster').getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > innerHeight) return;
-      document.querySelector('.poster-star').style.setProperty('--star-y', Math.max(-32, Math.min(32, -rect.top * .07)) + 'px');
-    });
-  }, { passive: true });
 }
 
 // 얼리버드 마감(2026-12-13, 한국 시간) 카운트다운
