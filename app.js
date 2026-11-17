@@ -129,8 +129,47 @@ function showCompletion() {
   history.replaceState(null, '', location.pathname + location.search + '#complete');
   document.title = '신청 완료 · 2027 More Than Able';
   scrollToTop();
+  updateFeeNotice();
   document.getElementById('complete-title').focus({ preventScroll: true });
 }
+
+// 완료 화면이 뜨는 시점(한국 시간)이 12월 14일 0시 이전이면 얼리버드 50,000원, 이후면 60,000원
+function updateFeeNotice() {
+  const early = Date.now() < Date.parse('2026-12-14T00:00:00+09:00');
+  const pill = document.getElementById('fee-pill');
+  pill.textContent = early ? '얼리버드' : '일반';
+  pill.classList.toggle('late', !early);
+  document.getElementById('fee-amount').textContent = early ? '50,000원' : '60,000원';
+  document.getElementById('fee-warn-note').textContent = early
+    ? '신청자 이름과 다르면 입금 확인이 어려워요. 얼리버드는 12/13까지예요.'
+    : '신청자 이름과 다르면 입금 확인이 어려워요. (얼리버드 기간 종료)';
+}
+
+let copiedTimer = null;
+document.getElementById('copy-account').addEventListener('click', async () => {
+  const number = document.getElementById('account-number').textContent.trim();
+  let copied = false;
+  try {
+    await navigator.clipboard.writeText(number);
+    copied = true;
+  } catch (error) {
+    const helper = document.createElement('textarea');
+    helper.value = number;
+    helper.setAttribute('readonly', '');
+    helper.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.append(helper);
+    helper.select();
+    try { copied = document.execCommand('copy'); } catch (fallbackError) { copied = false; }
+    helper.remove();
+  }
+  const button = document.getElementById('copy-account');
+  const statusLine = document.getElementById('copy-status');
+  document.getElementById('copy-text').textContent = copied ? '복사됨' : '길게 눌러 복사';
+  button.classList.add('copied');
+  statusLine.textContent = copied ? '계좌번호를 복사했습니다.' : '복사하지 못했습니다. 계좌번호를 길게 눌러 복사해 주세요.';
+  clearTimeout(copiedTimer);
+  copiedTimer = setTimeout(() => { button.classList.remove('copied'); }, 2200);
+});
 
 window.addEventListener('beforeunload', event => {
   const dirty = !applicationPage.hidden && [inputs.name, inputs.phone, inputs.rrn].some(input => input.value.trim());

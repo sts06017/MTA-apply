@@ -9,8 +9,8 @@
   <meta property="og:description" content="2027 More Than Able 동계수련회 안내와 신청 페이지">
   <meta property="og:image" content="https://sts06017.github.io/MTA-apply/assets/poster.jpg">
   <title>2027 More Than Able · 동계수련회 신청</title>
-  <link rel="stylesheet" href="styles.css?v=20261139">
-  <script src="app.js?v=20261139" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261141">
+  <script src="app.js?v=20261141" defer></script>
 </head>
 <body>
   <div id="information-page">
@@ -46,7 +46,22 @@
       <div class="wizard-actions"><button class="text-button" type="button" id="previous-step">← 이전</button><button class="next-button" type="button" id="next-step">다음 →</button><button class="next-button" type="submit" id="submit-button" hidden>신청서 제출하기 ↗</button></div><p class="status" id="status" role="alert" aria-live="polite"></p>
     </form>
   </div>
-  <section id="complete-page" class="complete-page shell" hidden aria-labelledby="complete-title"><div class="complete-card"><span class="complete-mark" aria-hidden="true">✓</span><span class="step-kicker">APPLICATION COMPLETE</span><h1 id="complete-title" tabindex="-1">신청이 접수되었습니다.</h1><p>신청해 주셔서 감사합니다.<br>수련회에서 만나요!</p><button class="next-button" type="button" id="complete-home">안내 페이지로 돌아가기 ↗</button></div></section>
+  <section id="complete-page" class="complete-page" hidden aria-labelledby="complete-title">
+    <div class="done-card">
+      <div class="done-icon" aria-hidden="true"><span><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+      <h1 id="complete-title" tabindex="-1">신청이 접수되었습니다.</h1>
+      <p class="done-sub">아래 계좌로 참가비를 입금해 주세요.</p>
+      <dl class="done-info">
+        <div class="done-row"><dt>참가비</dt><dd><span class="done-pill" id="fee-pill">얼리버드</span><b class="done-amount" id="fee-amount">50,000원</b></dd></div>
+        <div class="done-row"><dt>은행</dt><dd>카카오뱅크</dd></div>
+        <div class="done-row"><dt>계좌번호</dt><dd><b id="account-number">3333386069033</b><button class="copy-button" id="copy-account" type="button" aria-label="계좌번호 복사"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span class="copy-text" id="copy-text">복사됨</span></button></dd></div>
+        <div class="done-row"><dt>예금주</dt><dd>윤보라</dd></div>
+      </dl>
+      <div class="done-warn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.1"/></svg><div><b>입금자명은 반드시 본인 이름으로!</b><span id="fee-warn-note">신청자 이름과 다르면 입금 확인이 어려워요. 얼리버드는 12/13까지예요.</span></div></div>
+      <span class="visually-hidden" id="copy-status" role="status" aria-live="polite"></span>
+      <button class="done-button" type="button" id="complete-home">안내 페이지로 돌아가기</button>
+    </div>
+  </section>
   <iframe id="response-frame" name="mta-response-frame" title="신청 접수 결과" hidden></iframe>
 </body>
 </html>
