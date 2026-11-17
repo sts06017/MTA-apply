@@ -50,3 +50,14 @@ body.motion-ready .poster{animation:hero-in .85s .1s both}
 .rrn-alert strong{display:block;font-weight:900;font-size:clamp(17px,2.6vw,20px);line-height:1.55;letter-spacing:-.04em;color:var(--navy);word-break:keep-all}
 @media(prefers-reduced-motion:no-preference){.step-panel.is-entering .rrn-alert{animation:alert-pulse 1.1s .3s ease 1}}
 @keyframes alert-pulse{0%,100%{box-shadow:5px 5px 0 var(--navy)}50%{box-shadow:5px 5px 0 var(--orange)}}
+
+.wheel{position:relative;display:flex;height:220px;background:#fff;border:2px solid var(--navy);border-radius:14px;box-shadow:5px 5px 0 var(--navy);overflow:hidden}
+.wheel:before,.wheel:after{content:"";position:absolute;left:0;right:0;height:80px;z-index:2;pointer-events:none}
+.wheel:before{top:0;background:linear-gradient(#fff,#fff0)}.wheel:after{bottom:0;background:linear-gradient(#fff0,#fff)}
+.wheel-band{position:absolute;left:8px;right:8px;top:88px;height:44px;border-radius:10px;background:#ecebfb;z-index:0}
+.wheel-col{position:relative;z-index:1;flex:1;height:100%;overflow-y:auto;padding:88px 0;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;text-align:center;outline:0}
+.wheel-col::-webkit-scrollbar{display:none}
+.wheel-col:focus-visible{box-shadow:inset 0 0 0 3px var(--orange)}
+.wheel-item{height:44px;line-height:44px;scroll-snap-align:center;font-size:23px;font-weight:700;color:#b9b8d6;cursor:pointer;user-select:none;transition:color .15s,font-weight .15s}
+.wheel-item.active{color:var(--navy);font-weight:900}
+.time-result{min-height:28px;margin:22px 0 0;font-size:20px;font-weight:900;text-align:center}
