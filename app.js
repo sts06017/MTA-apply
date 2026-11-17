@@ -4,12 +4,13 @@ const applicationPage = document.getElementById('application-page');
 const completePage = document.getElementById('complete-page');
 const responseFrame = document.getElementById('response-frame');
 const form = document.getElementById('retreat-form');
-const allSteps = ['youthGroup', 'cell', 'name', 'phone', 'rrn', 'attendance', 'days', 'transport', 'arrival', 'sleep', 'prayer', 'request', 'review'];
+const allSteps = ['youthGroup', 'cell', 'name', 'phone', 'rrn', 'attendance', 'days', 'transport', 'arrival', 'sleep', 'size', 'prayer', 'request', 'review'];
 // 조건에 따라 나타나는 질문은 앞 질문의 하위 번호(예: 05-1)로 표시해 전체 개수가 변하지 않게 합니다.
 const SUB_OF = { cell: 'youthGroup', days: 'attendance', arrival: 'transport' };
 const mainSteps = allSteps.filter(key => !SUB_OF[key]);
-const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'phone', 'rrn', 'attendance', 'transport', 'arrival', 'sleep', 'prayer', 'request', 'consent'].map(id => [id, document.getElementById(id)]));
+const inputs = Object.fromEntries(['youthGroup', 'name', 'cell', 'phone', 'rrn', 'attendance', 'transport', 'arrival', 'sleep', 'size', 'prayer', 'request', 'consent'].map(id => [id, document.getElementById(id)]));
 const dayInputs = [...document.querySelectorAll('input[name="days"]')];
+const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 const CELLS = {
   '에임홀리': ['관용셀', '희영셀', '서우셀', '설희셀', '하은셀', '병민셀', '프렌즈팀', '없음'],
   '에임하이': ['서영셀', '효성셀', '지민셀', '수빈셀', '프렌즈팀', '없음']
@@ -333,6 +334,7 @@ function renderSummary() {
   rows.push(['이동 수단', inputs.transport.value, 'transport']);
   if (inputs.transport.value === '자차') rows.push(['도착 예정', inputs.arrival.value, 'arrival']);
   rows.push(['취침 여부', inputs.sleep.value, 'sleep']);
+  rows.push(['단체티 사이즈', inputs.size.value, 'size']);
   rows.push(['기도제목', inputs.prayer.value.trim() || '입력 안 함', 'prayer']);
   rows.push(['요청사항', inputs.request.value.trim() || '입력 안 함', 'request']);
   const target = document.getElementById('review-summary');
@@ -446,6 +448,7 @@ function validateStep(key) {
   }
   if (key === 'rrn' && !/^\d{6}-\d{7}$/.test(inputs.rrn.value)) return '주민등록번호 13자리를 확인해 주세요.';
   if (key === 'arrival' && !/^\d{2}:\d{2}$/.test(inputs.arrival.value)) return '도착 예정 시간을 입력해 주세요.';
+  if (key === 'size' && !SIZES.includes(inputs.size.value)) return '단체티 사이즈를 선택해 주세요.';
   if (key === 'sleep' && !['취침', '취침 안 함'].includes(inputs.sleep.value)) return '취침 여부를 선택해 주세요.';
   if (key === 'phone' && !/^[0-9+() -]{9,20}$/.test(inputs.phone.value.trim())) return '연락처를 확인해 주세요.';
   if (key === 'review' && !inputs.consent.checked) return '개인정보 수집·이용 동의가 필요합니다.';
