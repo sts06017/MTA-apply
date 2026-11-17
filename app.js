@@ -181,7 +181,7 @@ const arrivalState = { ...WHEEL_DEFAULT };
 const wheelColumns = {
   period: { element: document.getElementById('wheel-period'), values: ['오전', '오후'], label: value => value },
   hour: { element: document.getElementById('wheel-hour'), values: Array.from({ length: 12 }, (_, index) => index + 1), label: value => String(value) },
-  minute: { element: document.getElementById('wheel-minute'), values: Array.from({ length: 12 }, (_, index) => index * 5), label: value => String(value).padStart(2, '0') }
+  minute: { element: document.getElementById('wheel-minute'), values: Array.from({ length: 6 }, (_, index) => index * 10), label: value => String(value).padStart(2, '0') }
 };
 
 function arrivalIndex(key) {
