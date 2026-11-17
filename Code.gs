@@ -26,6 +26,7 @@ function doPost(e) {
     const rrn = clean(p.rrn, 14);
     const arrival = clean(p.arrival, 5);
     const sleep = clean(p.sleep, 10);
+    const size = clean(p.size, 5);
     const prayer = clean(p.prayer, 500);
     const request = clean(p.request, 500);
 
@@ -36,6 +37,7 @@ function doPost(e) {
     if (!['자차', '버스'].includes(transport)) throw new Error('invalid');
     if (transport === '자차' ? !/^\d{2}:\d{2}$/.test(arrival) : arrival) throw new Error('invalid');
     if (!['취침', '취침 안 함'].includes(sleep)) throw new Error('invalid');
+    if (!['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'].includes(size)) throw new Error('invalid');
     if (!days.length || days.some(day => !ALLOWED_DAYS.includes(day))) throw new Error('invalid');
     if (new Set(days).size !== days.length) throw new Error('invalid');
     if (attendance === '전' && days.length !== ALLOWED_DAYS.length) throw new Error('invalid');
@@ -50,7 +52,7 @@ function doPost(e) {
     try {
       const row = [
         new Date(), youthGroup, cell, name,
-        phone, rrn, attendance,
+        phone, rrn, size, attendance,
         days.join(', '), arrival, transport,
         sleep, prayer, request
       ];

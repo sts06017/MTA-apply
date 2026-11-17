@@ -40,3 +40,7 @@ body.motion-ready .poster{animation:hero-in .85s .1s both}
 .page-footer{background:var(--navy)}
 .floating-cta{background:var(--navy)}
 .floating-cta{background:#dd4309;border-color:var(--navy);box-shadow:6px 6px 0 var(--navy),0 17px 35px #0003}.floating-cta:hover{box-shadow:6px 10px 0 var(--navy),0 22px 35px #0004}
+
+.option-grid.sizes{grid-template-columns:repeat(2,1fr)}.option-grid.sizes .option{min-height:84px;padding:16px 18px}.opt-text{display:block;font-size:18px;font-weight:900;line-height:1.3}.opt-text small{font-size:11px;font-weight:700;margin-top:4px}
+.size-notes{margin:22px 0 0;padding:0 0 0 18px;font-size:12.5px;line-height:1.75;color:#5b5a86}
+@media(max-width:380px){.option-grid.sizes{grid-template-columns:1fr}}
