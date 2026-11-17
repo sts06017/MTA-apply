@@ -174,54 +174,87 @@ function renderCellOptions() {
   }));
 }
 
-const arrivalState = { hour: null, minute: null };
-const pad2 = number => String(number).padStart(2, '0');
+// 도착 예정 시간: 오전/오후 · 시 · 분을 휠(스크롤)로 고르는 선택기
+const WHEEL_ITEM = 44;
+const WHEEL_DEFAULT = { period: 0, hour: 10, minute: 0 };
+const arrivalState = { ...WHEEL_DEFAULT };
+const wheelColumns = {
+  period: { element: document.getElementById('wheel-period'), values: ['오전', '오후'], label: value => value },
+  hour: { element: document.getElementById('wheel-hour'), values: Array.from({ length: 12 }, (_, index) => index + 1), label: value => String(value) },
+  minute: { element: document.getElementById('wheel-minute'), values: Array.from({ length: 12 }, (_, index) => index * 5), label: value => String(value).padStart(2, '0') }
+};
+
+function arrivalIndex(key) {
+  const { values } = wheelColumns[key];
+  return key === 'period' ? arrivalState.period : values.indexOf(arrivalState[key]);
+}
+
+function arrivalText() {
+  return wheelColumns.period.values[arrivalState.period] + ' ' + arrivalState.hour + '시 ' + String(arrivalState.minute).padStart(2, '0') + '분';
+}
 
 function syncArrival() {
-  const { hour, minute } = arrivalState;
-  document.querySelectorAll('#arrival-hours .chip').forEach(chip => {
-    const selected = Number(chip.dataset.value) === hour;
-    chip.classList.toggle('selected', selected);
-    chip.setAttribute('aria-pressed', String(selected));
+  Object.entries(wheelColumns).forEach(([key, { element }]) => {
+    const active = arrivalIndex(key);
+    element.querySelectorAll('.wheel-item').forEach((item, index) => {
+      item.classList.toggle('active', index === active);
+      item.setAttribute('aria-selected', String(index === active));
+    });
   });
-  document.querySelectorAll('#arrival-minutes .chip').forEach(chip => {
-    const selected = Number(chip.dataset.value) === minute;
-    chip.classList.toggle('selected', selected);
-    chip.setAttribute('aria-pressed', String(selected));
+  const hour24 = (arrivalState.hour % 12) + arrivalState.period * 12;
+  inputs.arrival.value = String(hour24).padStart(2, '0') + ':' + String(arrivalState.minute).padStart(2, '0');
+  document.getElementById('arrival-result').textContent = arrivalText();
+}
+
+function scrollWheelsToState(behavior) {
+  Object.entries(wheelColumns).forEach(([key, { element }]) => {
+    element.scrollTo({ top: arrivalIndex(key) * WHEEL_ITEM, behavior });
   });
-  inputs.arrival.value = hour !== null && minute !== null ? pad2(hour) + ':' + pad2(minute) : '';
-  const result = document.getElementById('arrival-result');
-  if (hour === null && minute === null) result.textContent = '';
-  else {
-    const period = hour === null ? '' : (hour < 12 ? '오전 ' : '오후 ');
-    const shown = hour === null ? '--시' : (hour % 12 === 0 ? 12 : hour % 12) + '시';
-    result.textContent = period + shown + ' ' + (minute === null ? '--분' : minute + '분');
-  }
 }
 
 function clearArrival() {
-  arrivalState.hour = null;
-  arrivalState.minute = null;
-  syncArrival();
+  Object.assign(arrivalState, WHEEL_DEFAULT);
+  inputs.arrival.value = '';
+  document.getElementById('arrival-result').textContent = '';
+  wheelColumns.period.element.querySelectorAll('.wheel-item.active').forEach(item => item.classList.remove('active'));
 }
 
-function buildChips(containerId, values, label, key) {
-  document.getElementById(containerId).replaceChildren(...values.map(value => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'chip';
-    chip.dataset.value = String(value);
-    chip.textContent = pad2(value) + label;
-    chip.addEventListener('click', () => {
-      arrivalState[key] = value;
+// 도착 시간 단계에 들어오면 기본값(오전 10:00)을 선택한 상태로 보여 줍니다.
+function showArrivalWheel() {
+  syncArrival();
+  requestAnimationFrame(() => scrollWheelsToState('instant'));
+}
+
+Object.entries(wheelColumns).forEach(([key, { element, values, label }]) => {
+  element.replaceChildren(...values.map((value, index) => {
+    const item = document.createElement('div');
+    item.className = 'wheel-item';
+    item.setAttribute('role', 'option');
+    item.textContent = label(value);
+    item.addEventListener('click', () => element.scrollTo({ top: index * WHEEL_ITEM, behavior: reduceMotion.matches ? 'instant' : 'smooth' }));
+    return item;
+  }));
+  let frame = null;
+  element.addEventListener('scroll', () => {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = null;
+      const index = Math.max(0, Math.min(values.length - 1, Math.round(element.scrollTop / WHEEL_ITEM)));
+      const next = key === 'period' ? index : values[index];
+      if (arrivalState[key] === next && inputs.arrival.value) return;
+      arrivalState[key] = next;
       syncArrival();
       clearStatus();
     });
-    return chip;
-  }));
-}
-buildChips('arrival-hours', Array.from({ length: 24 }, (_, index) => index), '시', 'hour');
-buildChips('arrival-minutes', [0, 10, 20, 30, 40, 50], '분', 'minute');
+  }, { passive: true });
+  element.addEventListener('keydown', event => {
+    const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
+    if (!step) return;
+    event.preventDefault();
+    const index = Math.max(0, Math.min(values.length - 1, arrivalIndex(key) + step));
+    element.scrollTo({ top: index * WHEEL_ITEM, behavior: reduceMotion.matches ? 'instant' : 'smooth' });
+  });
+});
 
 function setChoice(name, value) {
   if (name === 'youthGroup') {
@@ -332,7 +365,7 @@ function renderSummary() {
   ];
   rows.push(['참석 날짜', dayInputs.filter(input => input.checked).map(input => Number(input.value.slice(-2)) + '일').join(', '), inputs.attendance.value === '부분' ? 'days' : 'attendance']);
   rows.push(['이동 수단', inputs.transport.value, 'transport']);
-  if (inputs.transport.value === '자차') rows.push(['도착 예정', inputs.arrival.value, 'arrival']);
+  if (inputs.transport.value === '자차') rows.push(['도착 예정', arrivalText(), 'arrival']);
   rows.push(['취침 여부', inputs.sleep.value, 'sleep']);
   rows.push(['단체티 사이즈', inputs.size.value, 'size']);
   rows.push(['기도제목', inputs.prayer.value.trim() || '입력 안 함', 'prayer']);
@@ -395,6 +428,7 @@ function stepLabel(key, sequence) {
 }
 
 function renderStep() {
+  if (currentStep === 'arrival') showArrivalWheel();
   if (currentStep !== 'review') showRrn = false;
   syncTransport();
   const sequence = activeSteps();
