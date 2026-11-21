@@ -95,3 +95,5 @@ body.motion-ready .poster{animation:hero-in .85s .1s both}
 @keyframes done-pop{0%{scale:.5;opacity:0}60%{scale:1.1;opacity:1}100%{scale:1}}
 .complete-page:not([hidden]) .done-icon{animation:done-pop .6s .1s cubic-bezier(.2,.8,.2,1) both}
 @media(prefers-reduced-motion:reduce){.complete-page:not([hidden]) .done-icon{animation:none}}
+
+.info-card p.meet{display:flex;flex-direction:column;gap:1px;width:max-content;max-width:100%;margin-top:12px;padding:7px 11px;background:#fff;border:2px solid var(--navy);border-radius:9px;box-shadow:3px 3px 0 var(--orange);font-size:12px;line-height:1.4}.info-card p.meet b{font-size:14px;font-weight:900;color:var(--navy)}
