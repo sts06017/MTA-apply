@@ -335,8 +335,20 @@ inputs.rrn.addEventListener('input', () => {
   clearStatus();
 });
 customGroupInput.addEventListener('input', () => { inputs.youthGroup.value = customGroupInput.value.trim(); clearStatus(); });
+// 임시로 선택할 수 없게 막아 둔 항목입니다. 다시 열려면 아래 목록을 비우면 됩니다. (예: { attendance: [], transport: [] })
+const TEMP_DISABLED = { attendance: ['부분'], transport: ['자차'] };
+
 document.querySelectorAll('[data-options-for] .option').forEach(button => {
   button.setAttribute('aria-pressed', 'false');
+  const group = button.closest('[data-options-for]').dataset.optionsFor;
+  if ((TEMP_DISABLED[group] || []).includes(button.dataset.value)) {
+    button.disabled = true;
+    button.setAttribute('aria-disabled', 'true');
+    const note = document.createElement('span');
+    note.className = 'soon';
+    note.textContent = '현재 선택 불가';
+    button.append(note);
+  }
   button.addEventListener('click', () => {
     setChoice(button.closest('[data-options-for]').dataset.optionsFor, button.dataset.value);
   });
@@ -510,13 +522,13 @@ function validateStep(key) {
   }
   if (key === 'cell' && !(CELLS[inputs.youthGroup.value] || []).includes(inputs.cell.value)) return '소속 셀을 선택해 주세요.';
   if (key === 'name' && !inputs.name.value.trim()) return '이름을 입력해 주세요.';
-  if (key === 'attendance' && !['전', '부분'].includes(inputs.attendance.value)) return '참석 구분을 선택해 주세요.';
+  if (key === 'attendance' && (!['전', '부분'].includes(inputs.attendance.value) || TEMP_DISABLED.attendance.includes(inputs.attendance.value))) return '참석 구분을 선택해 주세요.';
   if (key === 'days') {
     const count = dayInputs.filter(input => input.checked).length;
     if (count !== 1) return '부분 참석 날짜를 하나 선택해 주세요.';
   }
   if (key === 'transport') {
-    if (!['자차', '버스'].includes(inputs.transport.value)) return '이동 수단을 선택해 주세요.';
+    if (!['자차', '버스'].includes(inputs.transport.value) || TEMP_DISABLED.transport.includes(inputs.transport.value)) return '이동 수단을 선택해 주세요.';
     if (inputs.transport.value === '버스' && busBlocked()) return '토요일 부분 참석은 버스를 이용할 수 없습니다.';
   }
   if (key === 'rrn' && !/^\d{6}-\d{7}$/.test(inputs.rrn.value)) return '주민등록번호 13자리를 확인해 주세요.';

@@ -97,3 +97,5 @@ body.motion-ready .poster{animation:hero-in .85s .1s both}
 @media(prefers-reduced-motion:reduce){.complete-page:not([hidden]) .done-icon{animation:none}}
 
 .info-card p.meet{display:flex;flex-direction:column;gap:1px;width:max-content;max-width:100%;margin-top:12px;padding:7px 11px;background:#fff;border:2px solid var(--navy);border-radius:9px;box-shadow:3px 3px 0 var(--orange);font-size:12px;line-height:1.4}.info-card p.meet b{font-size:14px;font-weight:900;color:var(--navy)}
+
+.option .soon{margin-left:auto;flex:none;padding:3px 10px;border-radius:99px;background:#dcdcf0;color:#5b5a86;font-size:12px;font-weight:700;white-space:nowrap}
