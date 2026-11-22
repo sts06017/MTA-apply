@@ -335,8 +335,8 @@ inputs.rrn.addEventListener('input', () => {
   clearStatus();
 });
 customGroupInput.addEventListener('input', () => { inputs.youthGroup.value = customGroupInput.value.trim(); clearStatus(); });
-// 임시로 선택할 수 없게 막아 둔 항목입니다. 다시 열려면 아래 목록을 비우면 됩니다. (예: { attendance: [], transport: [] })
-const TEMP_DISABLED = { attendance: ['부분'], transport: ['자차'] };
+// 임시로 선택할 수 없게 막아 둔 항목입니다. 다시 열려면 아래 목록을 비우면 됩니다. (예: { attendance: [], transport: [], sleep: [] })
+const TEMP_DISABLED = { attendance: ['부분'], transport: ['자차'], sleep: ['취침 안 함'] };
 
 document.querySelectorAll('[data-options-for] .option').forEach(button => {
   button.setAttribute('aria-pressed', 'false');
@@ -534,7 +534,7 @@ function validateStep(key) {
   if (key === 'rrn' && !/^\d{6}-\d{7}$/.test(inputs.rrn.value)) return '주민등록번호 13자리를 확인해 주세요.';
   if (key === 'arrival' && !/^\d{2}:\d{2}$/.test(inputs.arrival.value)) return '도착 예정 시간을 입력해 주세요.';
   if (key === 'size' && !SIZES.includes(inputs.size.value)) return '단체티 사이즈를 선택해 주세요.';
-  if (key === 'sleep' && !['취침', '취침 안 함'].includes(inputs.sleep.value)) return '취침 여부를 선택해 주세요.';
+  if (key === 'sleep' && (!['취침', '취침 안 함'].includes(inputs.sleep.value) || TEMP_DISABLED.sleep.includes(inputs.sleep.value))) return '취침 여부를 선택해 주세요.';
   if (key === 'phone' && !/^[0-9+() -]{9,20}$/.test(inputs.phone.value.trim())) return '연락처를 확인해 주세요.';
   if (key === 'review' && !inputs.consent.checked) return '개인정보 수집·이용 동의가 필요합니다.';
   return '';
